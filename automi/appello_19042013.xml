@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROC = 4;
+const int SCRITTORI = 2;
+const int LETTORI = 2;
+typedef int [0,PROC-1] pid;
+bool occupato = false;
+int w_R = 0;
+int w_W = 0;
+int lettori_dentro = 0;
+
+broadcast chan check;
+chan startWrite[pid];
+chan endWrite[pid];
+chan startRead[pid];
+chan endRead[pid];
+chan ok[pid];
+</declaration>
+	<template>
+		<name>Lettore</name>
+		<parameter>pid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id0" x="-212" y="-25">
+		</location>
+		<location id="id1" x="-51" y="-144">
+			<name x="-61" y="-178">Inside</name>
+			<label kind="invariant" x="-42" y="-136">x&lt;4</label>
+		</location>
+		<location id="id2" x="-212" y="-144">
+			<name x="-222" y="-178">Req</name>
+		</location>
+		<location id="id3" x="-374" y="-144">
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-356" y="-42">ok[id]?</label>
+			<nail x="-374" y="-25"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-42" y="-76">x&gt;2</label>
+			<label kind="synchronisation" x="-42" y="-59">endRead[id]!</label>
+			<nail x="-51" y="-25"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-194" y="-161">ok[id]?</label>
+			<label kind="assignment" x="-194" y="-144">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-356" y="-161">startRead[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>Scrittore</name>
+		<parameter>pid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id4" x="-59" y="51">
+		</location>
+		<location id="id5" x="-59" y="-76">
+			<name x="-69" y="-110">Inside</name>
+			<label kind="invariant" x="-42" y="-76">x&lt;5</label>
+		</location>
+		<location id="id6" x="-238" y="-76">
+			<name x="-248" y="-110">Req</name>
+		</location>
+		<location id="id7" x="-425" y="-76">
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-407" y="34">ok[id]?</label>
+			<nail x="-425" y="51"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-51" y="-17">x&gt;2</label>
+			<label kind="synchronisation" x="-59" y="-34">endWrite[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-195" y="-93">ok[id]?</label>
+			<label kind="assignment" x="-220" y="-76">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-407" y="-93">startWrite[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Gestore</name>
+		<parameter>pid id</parameter>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id8" x="-382" y="17">
+			<committed/>
+		</location>
+		<location id="id9" x="-382" y="-68">
+			<committed/>
+		</location>
+		<location id="id10" x="-646" y="-136">
+			<committed/>
+		</location>
+		<location id="id11" x="-722" y="-221">
+		</location>
+		<location id="id12" x="-527" y="-221">
+			<committed/>
+		</location>
+		<location id="id13" x="9" y="-221">
+			<committed/>
+		</location>
+		<location id="id14" x="-186" y="-221">
+			<committed/>
+		</location>
+		<location id="id15" x="-186" y="-315">
+			<committed/>
+		</location>
+		<location id="id16" x="-288" y="-417">
+		</location>
+		<location id="id17" x="-382" y="-315">
+			<committed/>
+		</location>
+		<location id="id18" x="-382" y="-221">
+		</location>
+		<init ref="id18"/>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-246" y="-59">ok[id]!</label>
+			<nail x="-246" y="17"/>
+			<nail x="-263" y="-119"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-340" y="-42">w_R&gt;0</label>
+			<label kind="synchronisation" x="-340" y="-25">check!</label>
+			<nail x="-348" y="-42"/>
+			<nail x="-348" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-569" y="-68">(w_W&gt;0 &amp;&amp; w_R==0)|| w_W==0</label>
+			<label kind="synchronisation" x="-484" y="-51">check!</label>
+			<label kind="assignment" x="-544" y="-34">occupato=false</label>
+			<nail x="-425" y="-42"/>
+			<nail x="-425" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-382" y="-127">endWrite[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-544" y="-136">ok[id]!</label>
+			<nail x="-399" y="-136"/>
+			<nail x="-382" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-704" y="-306">check?</label>
+			<nail x="-722" y="-289"/>
+			<nail x="-527" y="-289"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-680" y="-187">lettori_dentro==0 &amp;&amp; !occupato</label>
+			<label kind="assignment" x="-628" y="-178">w_W--,
+occupato=true</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-714" y="-255">lettori_dentro&gt;0 || occupato</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-509" y="-238">startWrite[id]?</label>
+			<label kind="assignment" x="-493" y="-221">w_W++</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-134" y="-306">lettori_dentro==0</label>
+			<label kind="synchronisation" x="-134" y="-289">check!</label>
+			<nail x="-152" y="-272"/>
+			<nail x="-33" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-204" y="-162">ok[id]!</label>
+			<nail x="9" y="-145"/>
+			<nail x="-297" y="-145"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-152" y="-221">lettori_dentro&gt;0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-364" y="-238">endRead[id]?</label>
+			<label kind="assignment" x="-364" y="-221">lettori_dentro--</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-271" y="-281">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-364" y="-349">!occupato &amp;&amp; w_W==0</label>
+			<label kind="assignment" x="-364" y="-315">lettori_dentro++</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-220" y="-434">occupato</label>
+			<label kind="synchronisation" x="-220" y="-417">check?</label>
+			<label kind="assignment" x="-220" y="-400">occupato=false,
+w_R--,
+lettori_dentro++</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="guard" x="-475" y="-400">occupato || w_W &gt; 0</label>
+			<label kind="assignment" x="-416" y="-366">w_R++</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-493" y="-289">startRead[id]?</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+l0 = Lettore(0);
+L1 = Lettore(1);
+s0 = Scrittore(2);
+s3 = Scrittore(3);
+
+// List one or more processes to be composed into a system.
+system Gestore,l0,L1,s0,s3;
+    </system>
+	<queries>
+		<query>
+			<formula>(s0.Req || s3.Req) --&gt; (s0.Inside||s3.Inside)
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt;deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

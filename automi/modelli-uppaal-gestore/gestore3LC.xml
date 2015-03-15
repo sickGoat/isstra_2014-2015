@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROC=5;
+const int NONE=-1;
+typedef int[0,PROC-1] pid;
+
+const int LOCK=1; //number of locks
+const int MNC=1; //max number of conditions per lock
+typedef int[0,LOCK-1] lid;
+typedef int[0,MNC-1] cid;
+
+//canali per lock/condition
+urgent chan lock[lid][pid];
+urgent chan unlock[lid][pid];
+urgent chan await[cid][lid][pid];
+urgent broadcast chan signalAll[cid][lid][pid];
+
+const int[1,MNC] CPL[lid]={1};
+const cid C=0;
+
+const int L=0; //nome lucchetto-monitor
+
+//canali gestore
+chan request[pid];
+chan finish[pid];
+chan ok[pid];
+
+
+bool release=false;
+int cnt=0;
+
+</declaration>
+	<template>
+		<name>Manager</name>
+		<parameter>const pid p</parameter>
+		<location id="id0" x="-14768" y="-14792">
+		</location>
+		<location id="id1" x="-14616" y="-14792">
+			<urgent/>
+		</location>
+		<location id="id2" x="-14616" y="-14728">
+			<urgent/>
+		</location>
+		<location id="id3" x="-14768" y="-14856">
+		</location>
+		<location id="id4" x="-14616" y="-14920">
+			<urgent/>
+		</location>
+		<location id="id5" x="-14768" y="-14984">
+			<name x="-14778" y="-15014">W</name>
+		</location>
+		<location id="id6" x="-14768" y="-14920">
+			<urgent/>
+		</location>
+		<location id="id7" x="-14912" y="-14728">
+		</location>
+		<location id="id8" x="-14912" y="-14920">
+		</location>
+		<location id="id9" x="-14912" y="-14816">
+			<name x="-14968" y="-14824">Home</name>
+		</location>
+		<init ref="id9"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-14720" y="-14808">ok[p]!</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-14866" y="-14815">unlock[L][p]!</label>
+			<nail x="-14872" y="-14792"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-14696" y="-14768">cnt&gt;0</label>
+			<nail x="-14656" y="-14744"/>
+			<nail x="-14656" y="-14776"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-14608" y="-14792">cnt==0</label>
+			<label kind="synchronisation" x="-14608" y="-14776">signalAll[C][L][p]!</label>
+			<label kind="assignment" x="-14608" y="-14760">release=false</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-14808" y="-14752">lock[L][p]!</label>
+			<label kind="assignment" x="-14798" y="-14730">cnt--</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-14866" y="-14858">unlock[L][p]!</label>
+			<nail x="-14872" y="-14856"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-14720" y="-14856">ok[p]!</label>
+			<nail x="-14616" y="-14856"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-14744" y="-14936">!release</label>
+			<label kind="assignment" x="-14756" y="-14917">cnt++,release=
+(cnt==3)?true:release</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id8"/>
+			<label kind="select" x="-14856" y="-15000">id:pid</label>
+			<label kind="synchronisation" x="-14900" y="-14985">signalAll[C][L][id]?</label>
+			<nail x="-14912" y="-14984"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-14760" y="-14976">release</label>
+			<label kind="synchronisation" x="-14760" y="-14960">await[C][L][p]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-14872" y="-14944">lock[L][p]!</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-14968" y="-14781">finish[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-14985" y="-14875">request[p]?</label>
+			<nail x="-14912" y="-14896"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Process</name>
+		<parameter>const pid p</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id10" x="-168" y="-88">
+		</location>
+		<location id="id11" x="-280" y="-88">
+			<name x="-290" y="-118">IN</name>
+			<label kind="invariant" x="-296" y="-80">x&lt;=4</label>
+		</location>
+		<location id="id12" x="-376" y="-88">
+			<name x="-386" y="-118">REQ</name>
+		</location>
+		<location id="id13" x="-488" y="-88">
+			<name x="-544" y="-96">Home</name>
+		</location>
+		<init ref="id13"/>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-344" y="-56">ok[p]?</label>
+			<nail x="-168" y="-40"/>
+			<nail x="-488" y="-40"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-248" y="-128">x&gt;=1</label>
+			<label kind="synchronisation" x="-248" y="-112">finish[p]!</label>
+			<nail x="-192" y="-88"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-344" y="-112">ok[p]?</label>
+			<label kind="assignment" x="-336" y="-88">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-464" y="-112">request[p]!</label>
+			<label kind="assignment" x="-456" y="-88">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Lock</name>
+		<parameter>const lid l</parameter>
+		<declaration>int[NONE,PROC-1] owner;</declaration>
+		<location id="id14" x="-376" y="64">
+			<name x="-408" y="72">Error</name>
+			<committed/>
+		</location>
+		<location id="id15" x="-120" y="-160">
+			<name x="-128" y="-152">Locked</name>
+		</location>
+		<location id="id16" x="-632" y="-160">
+			<name x="-672" y="-192">UnLocked</name>
+		</location>
+		<init ref="id16"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="select" x="-312" y="-32">c:cid,id:pid</label>
+			<label kind="guard" x="-320" y="-16">id!=owner</label>
+			<label kind="synchronisation" x="-344" y="0">await[c][l][id]?</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="select" x="-416" y="-272">id:pid</label>
+			<label kind="synchronisation" x="-424" y="-256">lock[l][id]?</label>
+			<label kind="assignment" x="-424" y="-232">owner=id</label>
+			<nail x="-528" y="-232"/>
+			<nail x="-256" y="-232"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="select" x="-208" y="-48">c:cid,id:pid</label>
+			<label kind="guard" x="-216" y="-32">id!=owner</label>
+			<label kind="synchronisation" x="-232" y="-16">signalAll[c][l][id]?</label>
+			<nail x="-152" y="-88"/>
+			<nail x="-320" y="64"/>
+			<nail x="-360" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="select" x="-272" y="-112">id:pid</label>
+			<label kind="guard" x="-288" y="-96">id!=owner</label>
+			<label kind="synchronisation" x="-304" y="-80">unlock[l][id]?</label>
+			<nail x="-216" y="-120"/>
+			<nail x="-352" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-440" y="-208">unlock[l][owner]?</label>
+			<label kind="assignment" x="-440" y="-184">owner=NONE</label>
+			<nail x="-248" y="-184"/>
+			<nail x="-520" y="-184"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id16"/>
+			<label kind="select" x="-480" y="-160">c:cid</label>
+			<label kind="synchronisation" x="-440" y="-160">await[c][l][owner]?</label>
+			<label kind="assignment" x="-440" y="-136">owner=NONE</label>
+			<nail x="-248" y="-136"/>
+			<nail x="-512" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-160" y="-256">lock[l][owner]?</label>
+			<nail x="-152" y="-232"/>
+			<nail x="-88" y="-232"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id14"/>
+			<label kind="select" x="-504" y="-96">id:pid</label>
+			<label kind="synchronisation" x="-504" y="-80">unlock[l][id]?</label>
+			<nail x="-536" y="-128"/>
+			<nail x="-400" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id14"/>
+			<label kind="select" x="-608" y="-32">c:cid,id:pid</label>
+			<label kind="synchronisation" x="-616" y="-16">signalAll[c][l][id]?</label>
+			<nail x="-600" y="-80"/>
+			<nail x="-432" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id14"/>
+			<label kind="select" x="-496" y="-16">c:cid,id:pid</label>
+			<label kind="synchronisation" x="-496" y="0">await[c][l][id]?</label>
+			<nail x="-560" y="-96"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+l=Lock(L);
+// List one or more processes to be composed into a system.
+system Manager,Process,l;</system>
+</nta>

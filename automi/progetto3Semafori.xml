@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int SEM = 2;
+const int PROC = 2;
+typedef int[0,PROC-1] pid;
+typedef int[0,PROC-2] aid;
+typedef int[PROC-1,PROC-1] bid;
+typedef int[0,SEM-1] sid;
+meta pid proc;
+
+/*
+    id dei semafori
+*/
+const int MUTEX = 0;
+const int WAIT = 1;
+
+/*
+    canali semafori
+*/
+chan P[sid];
+chan V[sid];
+chan GO[pid];
+
+/*
+    canali gestore
+*/
+chan request[pid];
+chan finish[pid];
+chan ok[pid];
+
+
+/* 
+    variabili gestore
+*/
+int[-2,2] accessi[pid];
+bool attesa[pid] = { false , false };
+int wait = 0;
+
+/*
+    variabili decoration
+*/
+int it_gest = 0;
+
+
+
+bool devoSvegliare(const int ID){
+    int altro = 1 - ID;
+    if( attesa[altro] &amp;&amp; accessi[ID] == 0 ){ return true;}
+    return false;
+
+}</declaration>
+	<template>
+		<name x="5" y="5">Gestore</name>
+		<parameter>pid id</parameter>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="-1725" y="-680">
+			<committed/>
+		</location>
+		<location id="id1" x="-1589" y="-756">
+			<committed/>
+		</location>
+		<location id="id2" x="-1844" y="-757">
+			<committed/>
+		</location>
+		<location id="id3" x="-1530" y="-1029">
+			<committed/>
+		</location>
+		<location id="id4" x="-1275" y="-1122">
+		</location>
+		<location id="id5" x="-1402" y="-1122">
+			<committed/>
+		</location>
+		<location id="id6" x="-1529" y="-1122">
+			<committed/>
+		</location>
+		<location id="id7" x="-1674" y="-1122">
+		</location>
+		<location id="id8" x="-1844" y="-1122">
+			<committed/>
+		</location>
+		<location id="id9" x="-1844" y="-969">
+			<name x="-1903" y="-978">Home</name>
+		</location>
+		<init ref="id9"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1691" y="-697">wait&gt;0</label>
+			<label kind="synchronisation" x="-1691" y="-680">V[WAIT]!</label>
+			<nail x="-1589" y="-680"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1708" y="-773">wait==0</label>
+			<label kind="synchronisation" x="-1708" y="-756">V[MUTEX]!</label>
+			<nail x="-1725" y="-756"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-1972" y="-722">devoSvegliare(id)</label>
+			<label kind="assignment" x="-1972" y="-705">attesa[1-id]=false</label>
+			<nail x="-1844" y="-680"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1802" y="-833">!devoSvegliare(id)</label>
+			<label kind="synchronisation" x="-1802" y="-816">V[MUTEX]!</label>
+			<nail x="-1819" y="-816"/>
+			<nail x="-1623" y="-816"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-1640" y="-994">ok[id]!</label>
+			<label kind="assignment" x="-1632" y="-969">accessi[id]++,
+accessi[1-id]--,
+attesa[id]=accessi[id]==2</label>
+			<nail x="-1530" y="-977"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-1589" y="-858">ok[id]!</label>
+			<label kind="assignment" x="-1589" y="-841">it_gest=it_gest==4?0:
+it_gest</label>
+			<nail x="-1598" y="-884"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-1921" y="-867">finish[id]?</label>
+			<label kind="assignment" x="-1921" y="-850">it_gest++</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-1266" y="-1080">GO[id]?</label>
+			<label kind="assignment" x="-1266" y="-1063">wait--</label>
+			<nail x="-1275" y="-1028"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-1606" y="-1080">!attesa[id]</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-1377" y="-1139">P[WAIT]!</label>
+			<label kind="assignment" x="-1377" y="-1122">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-1504" y="-1122">attesa[id]</label>
+			<label kind="synchronisation" x="-1504" y="-1139">V[MUTEX]!</label>
+			<label kind="assignment" x="-1504" y="-1105">wait++</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-1640" y="-1139">GO[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-1810" y="-1139">P[MUTEX]!</label>
+			<label kind="assignment" x="-1810" y="-1122">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-1929" y="-1063">request[id]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>ProcessoA</name>
+		<parameter>aid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id10" x="-552" y="-85">
+			<committed/>
+		</location>
+		<location id="id11" x="-263" y="42">
+		</location>
+		<location id="id12" x="-102" y="-85">
+			<name x="-112" y="-119">Inside</name>
+			<label kind="invariant" x="-85" y="-93">x&lt;=8</label>
+		</location>
+		<location id="id13" x="-263" y="-85">
+			<name x="-273" y="-119">Req</name>
+		</location>
+		<location id="id14" x="-433" y="-85">
+			<name x="-459" y="-119">Do_smt</name>
+			<label kind="invariant" x="-484" y="-68">x&lt;=30</label>
+		</location>
+		<init ref="id10"/>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id14"/>
+			<label kind="assignment" x="-534" y="-85">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-391" y="25">ok[id]?</label>
+			<label kind="assignment" x="-391" y="42">x=0</label>
+			<nail x="-433" y="42"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-93" y="-17">x&gt;=2</label>
+			<label kind="synchronisation" x="-93" y="0">finish[id]!</label>
+			<nail x="-102" y="42"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-229" y="-102">ok[id]?</label>
+			<label kind="assignment" x="-229" y="-85">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-399" y="-102">request[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>ProcessoB</name>
+		<parameter>bid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id15" x="-459" y="-153">
+			<committed/>
+		</location>
+		<location id="id16" x="-340" y="-153">
+			<name x="-366" y="-187">Do_smt</name>
+			<label kind="invariant" x="-391" y="-136">x&lt;=50</label>
+		</location>
+		<location id="id17" x="-170" y="-26">
+		</location>
+		<location id="id18" x="-9" y="-153">
+			<name x="-19" y="-187">Inside</name>
+			<label kind="invariant" x="8" y="-161">x&lt;=5</label>
+		</location>
+		<location id="id19" x="-170" y="-153">
+			<name x="-180" y="-187">Req</name>
+		</location>
+		<init ref="id15"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id16"/>
+			<label kind="assignment" x="-441" y="-153">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-298" y="-43">ok[id]?</label>
+			<label kind="assignment" x="-297" y="-25">x=0</label>
+			<nail x="-340" y="-26"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="0" y="-85">x&gt;=3</label>
+			<label kind="synchronisation" x="0" y="-68">finish[id]!</label>
+			<nail x="-9" y="-26"/>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-136" y="-170">ok[id]?</label>
+			<label kind="assignment" x="-136" y="-153">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-306" y="-170">request[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>BinarySemaphore</name>
+		<parameter>const sid s, const int[0,1] initial, const int[1,PROC] qs</parameter>
+		<declaration>pid q[qs];
+int[0,1] count;
+int[0,qs-1] in, out;
+bool op; //false=dequeue, true=enqueue
+
+void initialize(){
+	count=initial;
+	in=0; out=0;
+	op=false;
+}//initialize
+
+void enqueue(){
+	//pre: !full()
+	q[in]=proc;
+	in=(in+1)%qs;
+	op=true;
+}//enqueue
+
+pid dequeue(){
+	//pre: !empty
+	pid pro=q[out];
+	q[out]=0;
+	out=(out+1)%qs;
+	op=false;
+	return pro;
+}//dequeue
+
+bool empty(){
+	return !op &amp;&amp; in==out;
+}//empty
+
+bool full(){
+	return op &amp;&amp; in==out;
+}//full</declaration>
+		<location id="id20" x="-552" y="-96">
+			<name x="-562" y="-126">Error</name>
+			<committed/>
+		</location>
+		<location id="id21" x="-440" y="64">
+			<committed/>
+		</location>
+		<location id="id22" x="-584" y="-16">
+			<committed/>
+		</location>
+		<location id="id23" x="-480" y="-112">
+			<committed/>
+		</location>
+		<location id="id24" x="-480" y="-16">
+		</location>
+		<init ref="id22"/>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-640" y="-72">count==0 &amp;&amp; full()</label>
+			<label kind="synchronisation" x="-544" y="-56">P[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-640" y="24">count==0 &amp;&amp; !full()</label>
+			<label kind="synchronisation" x="-584" y="40">P[s]?</label>
+			<label kind="assignment" x="-608" y="56">enqueue()</label>
+			<nail x="-568" y="32"/>
+			<nail x="-536" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-408" y="8">GO[q[out]]!</label>
+			<label kind="assignment" x="-400" y="24">dequeue()</label>
+			<nail x="-408" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-496" y="8">!empty()</label>
+			<label kind="synchronisation" x="-488" y="24">V[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-392" y="-72">empty()</label>
+			<label kind="synchronisation" x="-384" y="-56">V[s]?</label>
+			<label kind="assignment" x="-384" y="-40">count=1</label>
+			<nail x="-400" y="-64"/>
+			<nail x="-384" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id24"/>
+			<label kind="assignment" x="-568" y="-32">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-520" y="-88">GO[q[in]]!</label>
+			<label kind="assignment" x="-512" y="-72">q[in]=0</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="-432" y="-144">count==1</label>
+			<label kind="synchronisation" x="-432" y="-128">P[s]?</label>
+			<label kind="assignment" x="-432" y="-112">count=0,
+q[in]=proc</label>
+			<nail x="-432" y="-112"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+m = BinarySemaphore(MUTEX,1,PROC-1);
+w = BinarySemaphore(WAIT,0,PROC-1);
+// List one or more processes to be composed into a system.
+system Gestore,ProcessoA,ProcessoB,m,w;
+    </system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt; deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>ProcessoA(0).Req --&gt; ProcessoA(0).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>ProcessoB(1).Req --&gt; ProcessoB(1).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ProcessoA(0).Inside &amp;&amp; ProcessoB(1).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] ProcessoA(0).Inside imply !ProcessoB(1).Inside &amp;&amp; ProcessoB(1).Inside imply !ProcessoA(0).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; accessi[0]==2 &amp;&amp; accessi[1]==-2
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] it_gest==4 imply ( accessi[0]!=3 || accessi[1]!=3)
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ( it_gest == 4 &amp;&amp; ( accessi[0] == 3 || accessi[1] == 3 ))
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

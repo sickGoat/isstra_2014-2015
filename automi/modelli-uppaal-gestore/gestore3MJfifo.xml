@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROC=5;
+const int MONITOR=1;
+const int NONE=-1;
+typedef int[0,PROC-1] pid;
+typedef int[0,MONITOR-1] mid;
+
+//canali monitor
+urgent chan synch[mid][pid];
+urgent chan endsynch[mid][pid];
+urgent chan wait[mid][pid];
+urgent broadcast chan notifyAll[mid][pid];
+
+const int m=0; //nome lucchetto-monitor
+
+//canali gestore
+chan request[pid];
+chan finish[pid];
+chan ok[pid];
+
+bool release=false;
+int cnt=0;
+
+const int[1,PROC] qs=PROC;
+
+typedef struct{
+   pid q[qs];
+   int[0,qs-1] in, out;
+   bool op;
+} queue;
+
+queue arrival; //arrival order
+
+void enq(queue &amp;q, const pid p){
+	//pre: !full()
+	q.q[q.in]=p;
+	q.in=(q.in+1)%qs;
+	q.op=true;
+}//enq
+
+pid deq(queue &amp;q){
+	//pre: !empty
+	pid pro=q.q[q.out];
+	q.q[q.out]=0;
+	q.out=(q.out+1)%qs;
+	q.op=false;
+	return pro;
+}//deq
+
+bool empty(queue q){
+	return !q.op &amp;&amp; q.in==q.out;
+}//empty
+
+bool full(queue q){
+	return q.op &amp;&amp; q.in==q.out;
+}//full
+
+pid getFirst(const queue q){
+    //pre: !empty()
+    return q.q[q.out];
+}//getFirst
+
+bool pMustSleep(const pid p){
+    if( release || p!=getFirst(arrival) )
+        return true;
+    return false; 
+}//pMustSleep</declaration>
+	<template>
+		<name>Manager</name>
+		<parameter>const pid p</parameter>
+		<location id="id0" x="-14768" y="-15056">
+		</location>
+		<location id="id1" x="-14624" y="-14848">
+		</location>
+		<location id="id2" x="-14768" y="-14792">
+			<urgent/>
+		</location>
+		<location id="id3" x="-14624" y="-14792">
+		</location>
+		<location id="id4" x="-14624" y="-14720">
+			<urgent/>
+		</location>
+		<location id="id5" x="-14768" y="-14848">
+			<urgent/>
+		</location>
+		<location id="id6" x="-14768" y="-14984">
+			<name x="-14800" y="-15000">W</name>
+		</location>
+		<location id="id7" x="-14768" y="-14920">
+			<urgent/>
+		</location>
+		<location id="id8" x="-14912" y="-14720">
+		</location>
+		<location id="id9" x="-14912" y="-14920">
+		</location>
+		<location id="id10" x="-14912" y="-14816">
+			<name x="-14968" y="-14824">Home</name>
+		</location>
+		<init ref="id10"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-14728" y="-15000">synch[m][p]!</label>
+			<nail x="-14728" y="-15032"/>
+			<nail x="-14728" y="-14952"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id0"/>
+			<label kind="select" x="-14808" y="-15040">id:pid</label>
+			<label kind="synchronisation" x="-14864" y="-15024">notifyAll[m][id]?</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-14739" y="-14815">endsynch[m][p]!</label>
+			<nail x="-14640" y="-14792"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-14840" y="-14808">ok[p]!</label>
+			<nail x="-14856" y="-14792"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-14696" y="-14768">cnt&gt;0</label>
+			<nail x="-14656" y="-14736"/>
+			<nail x="-14656" y="-14768"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-14616" y="-14784">cnt==0</label>
+			<label kind="synchronisation" x="-14616" y="-14768">notifyAll[m][p]!</label>
+			<label kind="assignment" x="-14616" y="-14752">release=false</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-14792" y="-14736">synch[m][p]!</label>
+			<label kind="assignment" x="-14776" y="-14720">cnt--</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-14840" y="-14864">ok[p]!</label>
+			<nail x="-14856" y="-14848"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-14739" y="-14849">endsynch[m][p]!</label>
+			<nail x="-14640" y="-14848"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-14730" y="-14943">!pMustSleep(p)</label>
+			<label kind="synchronisation" x="-14662" y="-14926">notifyAll[m][p]!</label>
+			<label kind="assignment" x="-14747" y="-14926">deq(arrival),
+cnt++,release=(cnt==3)?
+true:release</label>
+			<nail x="-14624" y="-14920"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-14864" y="-14976">pMustSleep(p)</label>
+			<label kind="synchronisation" x="-14832" y="-14960">wait[m][p]!</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-14892" y="-14943">synch[m][p]!</label>
+			<label kind="assignment" x="-14892" y="-14917">enq(arrival,p)</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-14976" y="-14776">finish[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-14992" y="-14880">request[p]?</label>
+			<nail x="-14912" y="-14888"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Process</name>
+		<parameter>const pid p</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id11" x="-168" y="-88">
+		</location>
+		<location id="id12" x="-280" y="-88">
+			<name x="-288" y="-120">IN</name>
+			<label kind="invariant" x="-296" y="-80">x&lt;=4</label>
+		</location>
+		<location id="id13" x="-376" y="-88">
+			<name x="-392" y="-120">REQ</name>
+		</location>
+		<location id="id14" x="-488" y="-88">
+			<name x="-544" y="-96">Home</name>
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-344" y="-56">ok[p]?</label>
+			<nail x="-168" y="-40"/>
+			<nail x="-488" y="-40"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-240" y="-120">x&gt;=1</label>
+			<label kind="synchronisation" x="-248" y="-104">finish[p]!</label>
+			<nail x="-192" y="-88"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-344" y="-104">ok[p]?</label>
+			<label kind="assignment" x="-336" y="-88">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-464" y="-104">request[p]!</label>
+			<label kind="assignment" x="-448" y="-88">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>JMonitor</name>
+		<parameter>const mid m</parameter>
+		<declaration>int[NONE,PROC-1] owner=NONE;</declaration>
+		<location id="id15" x="-376" y="64">
+			<name x="-392" y="72">Error</name>
+			<committed/>
+		</location>
+		<location id="id16" x="-120" y="-160">
+			<name x="-104" y="-176">Locked</name>
+		</location>
+		<location id="id17" x="-632" y="-160">
+			<name x="-680" y="-192">UnLocked</name>
+		</location>
+		<init ref="id17"/>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="select" x="-304" y="-32">id:pid</label>
+			<label kind="guard" x="-328" y="-16">id!=owner</label>
+			<label kind="synchronisation" x="-344" y="0">wait[m][id]?</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="select" x="-408" y="-264">id:pid</label>
+			<label kind="synchronisation" x="-425" y="-246">synch[m][id]?</label>
+			<label kind="assignment" x="-416" y="-232">owner=id</label>
+			<nail x="-520" y="-224"/>
+			<nail x="-232" y="-224"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="select" x="-208" y="-88">id:pid</label>
+			<label kind="guard" x="-216" y="-72">id!=owner</label>
+			<label kind="synchronisation" x="-232" y="-56">notifyAll[m][id]?</label>
+			<nail x="-160" y="-72"/>
+			<nail x="-304" y="56"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="select" x="-280" y="-112">id:pid</label>
+			<label kind="guard" x="-304" y="-96">id!=owner</label>
+			<label kind="synchronisation" x="-340" y="-76">endsynch[m][id]?</label>
+			<nail x="-224" y="-120"/>
+			<nail x="-352" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-432" y="-200">endsynch[m][owner]?</label>
+			<label kind="assignment" x="-432" y="-184">owner=NONE</label>
+			<nail x="-248" y="-184"/>
+			<nail x="-520" y="-184"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-432" y="-160">wait[m][owner]?</label>
+			<label kind="assignment" x="-432" y="-136">owner=NONE</label>
+			<nail x="-248" y="-136"/>
+			<nail x="-512" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-42" y="-178">synch[m][owner]?</label>
+			<nail x="-51" y="-195"/>
+			<nail x="-48" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id15"/>
+			<label kind="select" x="-512" y="-96">id:pid</label>
+			<label kind="synchronisation" x="-512" y="-80">endsynch[m][id]?</label>
+			<nail x="-536" y="-120"/>
+			<nail x="-408" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id15"/>
+			<label kind="select" x="-616" y="-72">id:pid</label>
+			<label kind="synchronisation" x="-632" y="-56">notifyAll[m][id]?</label>
+			<nail x="-592" y="-72"/>
+			<nail x="-448" y="56"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id15"/>
+			<label kind="select" x="-480" y="-16">id:pid</label>
+			<label kind="synchronisation" x="-488" y="0">wait[m][id]?</label>
+			<nail x="-424" y="24"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+mon=JMonitor(m);
+// List one or more processes to be composed into a system.
+system Manager,Process,mon;</system>
+</nta>

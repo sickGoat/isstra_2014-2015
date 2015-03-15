@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+//unita di tempo singola operazione
+const int l = 1;
+//tempo massimo sezione critica
+const int c = 4;
+int[0,1] turn;
+bool flag[2] = {false,false};
+urgent chan enter;
+typedef int[0,1] id_p;</declaration>
+	<template>
+		<name x="5" y="5">Processo</name>
+		<parameter>const id_p id</parameter>
+		<declaration>// Place local declarations here.
+clock x,y;
+</declaration>
+		<location id="id0" x="-1581" y="-935">
+			<name x="-1564" y="-943">exit</name>
+			<label kind="invariant" x="-1632" y="-943">x&lt;=l</label>
+		</location>
+		<location id="id1" x="-1581" y="-731">
+			<name x="-1623" y="-739">try3</name>
+			<label kind="invariant" x="-1591" y="-714">x&lt;=l</label>
+		</location>
+		<location id="id2" x="-1581" y="-841">
+			<name x="-1623" y="-850">C_S</name>
+			<label kind="invariant" x="-1572" y="-867">x&lt;=c</label>
+		</location>
+		<location id="id3" x="-1207" y="-841">
+			<name x="-1190" y="-867">try2</name>
+			<label kind="invariant" x="-1190" y="-850">x&lt;=l</label>
+		</location>
+		<location id="id4" x="-1207" y="-1020">
+			<name x="-1217" y="-1054">try1</name>
+			<label kind="invariant" x="-1190" y="-1028">x&lt;=l</label>
+		</location>
+		<location id="id5" x="-1402" y="-1020">
+			<name x="-1412" y="-1054">try0</name>
+			<label kind="invariant" x="-1419" y="-1003">x&lt;=l</label>
+		</location>
+		<location id="id6" x="-1581" y="-1020">
+			<name x="-1624" y="-1045">Start</name>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id6"/>
+			<label kind="assignment" x="-1674" y="-986">flag[id]=false</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-1572" y="-909">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-1462" y="-731">turn!=id</label>
+			<label kind="assignment" x="-1462" y="-714">x=0</label>
+			<nail x="-1207" y="-731"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-1649" y="-799">turn==id</label>
+			<label kind="assignment" x="-1623" y="-782">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1470" y="-799">flag[1-id]</label>
+			<label kind="assignment" x="-1445" y="-773">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-1462" y="-867">!flag[1-id]</label>
+			<label kind="assignment" x="-1385" y="-867">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="-1198" y="-926">turn = 1 - id,
+x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="-1351" y="-1054">flag[id] = true,
+x=0</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="-1547" y="-1020">y=0 , x=0</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+
+// List one or more processes to be composed into a system.
+system Processo;
+    </system>
+	<queries>
+		<query>
+			<formula>Processo(0).try3 --&gt; Processo(0).C_S
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] ( Processo(1) .try2 || Processo(1).try3) imply Processo(1).y &lt;= c + 9*l
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

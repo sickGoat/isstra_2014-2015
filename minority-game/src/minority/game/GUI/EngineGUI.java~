@@ -1,0 +1,80 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package minority.game;
+import jade.core.Agent;
+
+/**
+ *
+ * @author antonio
+ */
+public class EngineGUI extends javax.swing.JFrame {
+
+    /**
+     * Creates new form EngineGUI
+     * @param engine_agent
+     */
+    public EngineGUI(Agent engine_agent) {
+        this.engine = engine_agent;
+        initComponents();
+    }
+
+  
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel2 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        combo_n_player = new javax.swing.JComboBox();
+        combo_n_giocate = new javax.swing.JComboBox();
+        combo_bit = new javax.swing.JComboBox();
+        combo_spg = new javax.swing.JComboBox();
+        button_start = new javax.swing.JButton();
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
+
+        jLabel5.setText("#Giocatori");
+
+        jLabel6.setText("#Giocate");
+
+        jLabel7.setText("Bit Memoria");
+
+        jLabel8.setText("SPG");
+        jLabel8.setToolTipText("Strategie per giocatore");
+
+        combo_n_player.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "11", "51","71","91","101", "1001" }));
+
+        combo_n_giocate.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "10", "100", "1000" }));
+
+        combo_bit.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "3", "6", "8", "10" }));
+
+        combo_spg.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "4" ,"5","6","7","8"}));
+
+        button_start.setText("Start");
+        button_start.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_startActionPerformed(evt);
+            }
+        });
+

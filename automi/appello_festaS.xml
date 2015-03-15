@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.</declaration>
+	<template>
+		<name x="5" y="5">Studente</name>
+		<parameter>const s_id id</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id0" x="-263" y="0">
+		</location>
+		<location id="id1" x="-76" y="-153">
+			<name x="-86" y="-187">Inside</name>
+			<label kind="invariant" x="-59" y="-153">x&lt;5</label>
+		</location>
+		<location id="id2" x="-263" y="-153">
+			<name x="-273" y="-187">Req</name>
+		</location>
+		<location id="id3" x="-484" y="-153">
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-466" y="-17">ok[id]?</label>
+			<nail x="-484" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-68" y="-76">x&gt;2</label>
+			<label kind="synchronisation" x="-68" y="-59">uscitaStudente[id]!</label>
+			<nail x="-76" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-245" y="-170">ok[id]?</label>
+			<label kind="assignment" x="-245" y="-153">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-535" y="-187">ingressoStudente[id]!</label>
+			<label kind="assignment" x="-459" y="-153">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Responsabile</name>
+		<parameter>const rid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id4" x="-221" y="-34">
+		</location>
+		<location id="id5" x="0" y="-178">
+			<name x="-10" y="-212">Inside</name>
+		</location>
+		<location id="id6" x="-221" y="-178">
+			<name x="-231" y="-212">Req</name>
+		</location>
+		<location id="id7" x="-416" y="-178">
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-398" y="-51">ok[id]?</label>
+			<nail x="-416" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="8" y="-110">x&gt;3</label>
+			<label kind="synchronisation" x="8" y="-93">uscitaResponsabile[id]!</label>
+			<nail x="0" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-203" y="-195">ok[id]?</label>
+			<label kind="assignment" x="-203" y="-178">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-416" y="-212">ingressoResponsabile[id]!</label>
+			<label kind="assignment" x="-398" y="-178">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Gestore</name>
+		<parameter>const pid id</parameter>
+		<declaration>bool possoEntrare(const int id){
+    if( id &gt;= RESPONSABILI ){
+        return stud_dentro &lt; MAX &amp;&amp; !resp_dentro;
+    }else{
+        return stud_dentro == 0 || stud_dentro == MAX;
+    }
+}</declaration>
+		<location id="id8" x="-476" y="-85">
+		</location>
+		<location id="id9" x="-391" y="-85">
+			<committed/>
+		</location>
+		<location id="id10" x="-136" y="34">
+			<committed/>
+		</location>
+		<location id="id11" x="-297" y="0">
+			<committed/>
+		</location>
+		<location id="id12" x="-297" y="-85">
+			<committed/>
+		</location>
+		<location id="id13" x="-187" y="-85">
+		</location>
+		<location id="id14" x="-229" y="-187">
+			<committed/>
+		</location>
+		<location id="id15" x="-357" y="-289">
+			<committed/>
+		</location>
+		<location id="id16" x="-357" y="-365">
+		</location>
+		<location id="id17" x="-263" y="-365">
+			<committed/>
+		</location>
+		<location id="id18" x="-263" y="-289">
+			<committed/>
+		</location>
+		<location id="id19" x="-170" y="-289">
+		</location>
+		<location id="id20" x="544" y="-34">
+			<committed/>
+		</location>
+		<location id="id21" x="391" y="-34">
+			<committed/>
+		</location>
+		<location id="id22" x="280" y="-34">
+		</location>
+		<location id="id23" x="578" y="-187">
+			<committed/>
+		</location>
+		<location id="id24" x="578" y="-280">
+			<committed/>
+		</location>
+		<location id="id25" x="484" y="-374">
+		</location>
+		<location id="id26" x="399" y="-374">
+			<committed/>
+		</location>
+		<location id="id27" x="399" y="-280">
+			<committed/>
+		</location>
+		<location id="id28" x="289" y="-280">
+		</location>
+		<location id="id29" x="-51" y="-85">
+			<committed/>
+		</location>
+		<location id="id30" x="-34" y="-289">
+			<committed/>
+		</location>
+		<location id="id31" x="153" y="-34">
+			<committed/>
+		</location>
+		<location id="id32" x="153" y="-280">
+			<committed/>
+		</location>
+		<location id="id33" x="59" y="-178">
+		</location>
+		<init ref="id33"/>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="416" y="-34">stud_attesa &amp;&amp;
+!resp_dentro</label>
+			<label kind="synchronisation" x="416" y="0">V[S]!</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="680" y="-246">stud_attesa==0||
+(stud_dentro==MAX &amp;&amp; !resp_attesa)</label>
+			<label kind="synchronisation" x="680" y="-212">V[MUTEX]!</label>
+			<nail x="663" y="-263"/>
+			<nail x="663" y="-187"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="595" y="-280">stud_dentro&lt;MAX &amp;&amp; 
+stud_attesa&gt;0</label>
+			<label kind="synchronisation" x="595" y="-246">V[S]!</label>
+			<nail x="595" y="-263"/>
+			<nail x="595" y="-221"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="442" y="-255">stud_dentro==MAX 
+&amp;&amp; resp_attesa</label>
+			<label kind="synchronisation" x="442" y="-221">V[R]!</label>
+			<nail x="501" y="-251"/>
+			<nail x="501" y="-208"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-51" y="-17">ok[id]!</label>
+			<nail x="51" y="-85"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-272" y="51">stud_attesa&gt;0</label>
+			<label kind="synchronisation" x="-255" y="68">V[S]!</label>
+			<nail x="-272" y="59"/>
+			<nail x="-204" y="76"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-263" y="-17">stud_attesa==0</label>
+			<label kind="synchronisation" x="-255" y="0">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-458" y="-17">GO[id]?</label>
+			<label kind="assignment" x="-458" y="0">resp_dentro=false,
+resp_attesa=false</label>
+			<nail x="-476" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-289" y="-59">stud_dentro==0</label>
+			<label kind="assignment" x="-297" y="-42">resp_dentro=false</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-458" y="-102">P[R]!</label>
+			<label kind="assignment" x="-458" y="-85">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-373" y="-119">stud_dentro!=0</label>
+			<label kind="synchronisation" x="-373" y="-102">V[MUTEX]!</label>
+			<label kind="assignment" x="-373" y="-85">resp_attesa=true</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-263" y="-102">GO[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-169" y="-102">P[MUTEX]!</label>
+			<label kind="assignment" x="-169" y="-85">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-170" y="-204">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-339" y="-204">V[MUTEX]!</label>
+			<nail x="-357" y="-187"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-433" y="-357">GO[id]?</label>
+			<label kind="assignment" x="-450" y="-340">resp_attesa=false,
+resp_dentro=true</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-357" y="-306">possoEntrare(id)</label>
+			<label kind="assignment" x="-339" y="-289">resp_dentro=true</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-323" y="-382">P[R]!</label>
+			<label kind="assignment" x="-339" y="-365">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-255" y="-357">!possoEntrare(id)</label>
+			<label kind="synchronisation" x="-255" y="-340">V[MUTEX]!</label>
+			<label kind="assignment" x="-255" y="-323">resp_attesa=true</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-229" y="-306">GO[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-144" y="-306">P[MUTEX]!</label>
+			<label kind="assignment" x="-144" y="-289">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="620" y="-93">ok[id]!</label>
+			<nail x="612" y="-34"/>
+			<nail x="612" y="-136"/>
+			<nail x="119" y="-144"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="425" y="17">stud_dentro&gt;0 || !resp_attesa</label>
+			<label kind="synchronisation" x="433" y="34">V[MUTEX]!</label>
+			<nail x="416" y="34"/>
+			<nail x="527" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="433" y="-119">stud_dentro==0 &amp;&amp;
+resp_attesa</label>
+			<label kind="synchronisation" x="433" y="-85">V[R]!</label>
+			<nail x="416" y="-85"/>
+			<nail x="510" y="-85"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="298" y="-51">GO[id]?</label>
+			<label kind="assignment" x="298" y="-34">stud_dentro--</label>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="171" y="-51">P[MUTEX]!</label>
+			<label kind="assignment" x="171" y="-34">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="323" y="-178">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="578" y="-365">GO[id]?</label>
+			<label kind="assignment" x="578" y="-348">stud_attesa--,
+stud_dentro++</label>
+			<nail x="578" y="-374"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="417" y="-391">P[S]!</label>
+			<label kind="assignment" x="417" y="-374">proc = id</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id24"/>
+			<label kind="guard" x="425" y="-297">possoEntrare(id)</label>
+			<label kind="assignment" x="417" y="-280">stud_dentro++</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id26"/>
+			<label kind="guard" x="357" y="-348">!possoEntrare(id)</label>
+			<label kind="synchronisation" x="357" y="-331">V[MUTEX]!</label>
+			<label kind="assignment" x="357" y="-323">stud_attesa++</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id27"/>
+			<label kind="synchronisation" x="314" y="-297">GO[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id28"/>
+			<label kind="synchronisation" x="187" y="-297">P[MUTEX]!</label>
+			<label kind="assignment" x="187" y="-280">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-102" y="-136">uscitaResponsabile[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id30"/>
+			<label kind="synchronisation" x="-102" y="-246">ingressoResponsabile[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="93" y="-93">uscitaStudente[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="102" y="-246">ingressoStudente[id]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>BinarySemaphore</name>
+		<parameter>const sid s, const int[0,1] initial, const int[1,PROC] qs</parameter>
+		<declaration>pid q[qs];
+int[0,1] count;
+int[0,qs-1] in, out;
+bool op; //false=dequeue, true=enqueue
+
+void initialize(){
+	count=initial;
+	in=0; out=0;
+	op=false;
+}//initialize
+
+void enqueue(){
+	//pre: !full()
+	q[in]=proc;
+	in=(in+1)%qs;
+	op=true;
+}//enqueue
+
+pid dequeue(){
+	//pre: !empty
+	pid pro=q[out];
+	q[out]=0;
+	out=(out+1)%qs;
+	op=false;
+	return pro;
+}//dequeue
+
+bool empty(){
+	return !op &amp;&amp; in==out;
+}//empty
+
+bool full(){
+	return op &amp;&amp; in==out;
+}//full</declaration>
+		<location id="id34" x="-552" y="-96">
+			<name x="-562" y="-126">Error</name>
+			<committed/>
+		</location>
+		<location id="id35" x="-440" y="64">
+			<committed/>
+		</location>
+		<location id="id36" x="-584" y="-16">
+			<committed/>
+		</location>
+		<location id="id37" x="-480" y="-112">
+			<committed/>
+		</location>
+		<location id="id38" x="-480" y="-16">
+		</location>
+		<init ref="id36"/>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-640" y="-72">count==0 &amp;&amp; full()</label>
+			<label kind="synchronisation" x="-544" y="-56">P[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id38"/>
+			<label kind="guard" x="-640" y="24">count==0 &amp;&amp; !full()</label>
+			<label kind="synchronisation" x="-584" y="40">P[s]?</label>
+			<label kind="assignment" x="-608" y="56">enqueue()</label>
+			<nail x="-568" y="32"/>
+			<nail x="-536" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="-408" y="8">GO[q[out]]!</label>
+			<label kind="assignment" x="-400" y="24">dequeue()</label>
+			<nail x="-408" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id35"/>
+			<label kind="guard" x="-496" y="8">!empty()</label>
+			<label kind="synchronisation" x="-488" y="24">V[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id38"/>
+			<label kind="guard" x="-392" y="-72">empty()</label>
+			<label kind="synchronisation" x="-384" y="-56">V[s]?</label>
+			<label kind="assignment" x="-384" y="-40">count=1</label>
+			<nail x="-400" y="-64"/>
+			<nail x="-384" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id38"/>
+			<label kind="assignment" x="-568" y="-32">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="-520" y="-88">GO[q[in]]!</label>
+			<label kind="assignment" x="-512" y="-72">q[in]=0</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id37"/>
+			<label kind="guard" x="-432" y="-144">count==1</label>
+			<label kind="synchronisation" x="-432" y="-128">P[s]?</label>
+			<label kind="assignment" x="-432" y="-112">count=0,
+q[in]=proc</label>
+			<nail x="-432" y="-112"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+	</queries>
+</nta>

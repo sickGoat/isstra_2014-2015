@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROC = 2; const int NONE = -1;const int MONITOR = 1;const int MAX_C = 1;
+typedef int[0,PROC-1] pid;
+typedef int[0,PROC-2] aid;
+typedef int[PROC-1,PROC-1] bid;
+typedef int[0,MONITOR-1] mid;
+typedef int[0,MAX_C-1] cid;
+/*
+    id monitor
+*/
+const int m = 0;
+/* 
+    canali monitor
+*/
+chan lock[mid][pid];
+chan unlock[mid][pid];
+chan wait[cid][mid][pid];
+chan signal[cid][mid][pid];
+chan go[pid];
+/*
+    variabili monitor
+*/
+const int[1,MAX_C] CPL[MONITOR] = {1};
+const cid w = 0;//condition risorsa occupata
+
+/*
+    canali gestore
+*/
+chan request[pid];
+chan finish[pid];
+chan ok[pid];
+/* 
+    variabili gestore
+*/
+int[-2,2] accessi[pid];
+bool attesa[pid] = { false , false };
+bool occupato = false;
+/*
+    variabili decoration
+*/
+int it_gest = 0;
+
+bool devoSvegliare(const int ID){
+    int altro = 1 - ID;
+    return !attesa[altro];
+}
+
+bool devoDormire(const int ID){ return occupato || attesa[ID];}</declaration>
+	<template>
+		<name x="5" y="5">Gestore</name>
+		<parameter>pid id</parameter>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="-1045" y="-918">
+			<name x="-1037" y="-943">Wait</name>
+		</location>
+		<location id="id1" x="-1496" y="-510">
+		</location>
+		<location id="id2" x="-1360" y="-510">
+			<committed/>
+		</location>
+		<location id="id3" x="-1215" y="-510">
+			<committed/>
+		</location>
+		<location id="id4" x="-1020" y="-382">
+		</location>
+		<location id="id5" x="-1215" y="-382">
+			<committed/>
+		</location>
+		<location id="id6" x="-1385" y="-382">
+		</location>
+		<location id="id7" x="-1598" y="-382">
+			<committed/>
+		</location>
+		<location id="id8" x="-1496" y="-629">
+		</location>
+		<location id="id9" x="-1360" y="-629">
+			<committed/>
+		</location>
+		<location id="id10" x="-1224" y="-629">
+			<committed/>
+		</location>
+		<location id="id11" x="-1224" y="-765">
+			<committed/>
+		</location>
+		<location id="id12" x="-1224" y="-918">
+			<committed/>
+		</location>
+		<location id="id13" x="-1403" y="-918">
+		</location>
+		<location id="id14" x="-1598" y="-918">
+			<committed/>
+		</location>
+		<location id="id15" x="-1598" y="-629">
+			<name x="-1657" y="-637">Home</name>
+		</location>
+		<init ref="id15"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-1088" y="-527">go[id]?</label>
+			<nail x="-1020" y="-510"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-1343" y="-459">!devoSvegliare(id)</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-1037" y="-867">go[id]?</label>
+			<nail x="-1045" y="-765"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-1206" y="-952">devoDormire(id)</label>
+			<label kind="synchronisation" x="-1206" y="-935">wait[w][m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-1572" y="-586">go[id]?</label>
+			<nail x="-1547" y="-510"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-1478" y="-527">unlock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-1317" y="-527">ok[id]!</label>
+			<label kind="assignment" x="-1360" y="-544">it_gest=it_gest==4?0:it_gest</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-1181" y="-399">devoSvegliare(id)</label>
+			<label kind="synchronisation" x="-1181" y="-382">signal[w][m][id]!</label>
+			<nail x="-1054" y="-382"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-1368" y="-399">go[id]?</label>
+			<label kind="assignment" x="-1368" y="-374">occupato=false,
+attesa[1-id]=
+(attesa[1-id] &amp;&amp; accessi[id]==0)?false:attesa[1-id]</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-1547" y="-399">lock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-1666" y="-518">finish[id]?</label>
+			<label kind="assignment" x="-1666" y="-501">it_gest++</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-1572" y="-646">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-1470" y="-646">unlock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-1326" y="-646">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="assignment" x="-1215" y="-748">accessi[id]++,
+accessi[1-id]--,
+attesa[id]=accessi[id]==2,
+occupato=true</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-1343" y="-867">!devoDormire(id)</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-1352" y="-935">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-1564" y="-935">lock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-1683" y="-807">request[id]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>ProcessoA</name>
+		<parameter>aid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id16" x="-552" y="-85">
+			<committed/>
+		</location>
+		<location id="id17" x="-263" y="42">
+		</location>
+		<location id="id18" x="-102" y="-85">
+			<name x="-112" y="-119">Inside</name>
+			<label kind="invariant" x="-85" y="-93">x&lt;=8</label>
+		</location>
+		<location id="id19" x="-263" y="-85">
+			<name x="-273" y="-119">Req</name>
+		</location>
+		<location id="id20" x="-433" y="-85">
+			<name x="-459" y="-119">Do_smt</name>
+			<label kind="invariant" x="-484" y="-68">x&lt;=30</label>
+		</location>
+		<init ref="id16"/>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="-534" y="-85">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id20"/>
+			<label kind="synchronisation" x="-391" y="25">ok[id]?</label>
+			<label kind="assignment" x="-391" y="42">x=0</label>
+			<nail x="-433" y="42"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-93" y="-17">x&gt;=2</label>
+			<label kind="synchronisation" x="-93" y="0">finish[id]!</label>
+			<nail x="-102" y="42"/>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-229" y="-102">ok[id]?</label>
+			<label kind="assignment" x="-229" y="-85">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-399" y="-102">request[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>ProcessoB</name>
+		<parameter>bid id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id21" x="-459" y="-153">
+			<committed/>
+		</location>
+		<location id="id22" x="-340" y="-153">
+			<name x="-366" y="-187">Do_smt</name>
+			<label kind="invariant" x="-391" y="-136">x&lt;=50</label>
+		</location>
+		<location id="id23" x="-170" y="-26">
+		</location>
+		<location id="id24" x="-9" y="-153">
+			<name x="-19" y="-187">Inside</name>
+			<label kind="invariant" x="8" y="-161">x&lt;=5</label>
+		</location>
+		<location id="id25" x="-170" y="-153">
+			<name x="-180" y="-187">Req</name>
+		</location>
+		<init ref="id21"/>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id22"/>
+			<label kind="assignment" x="-441" y="-153">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="-298" y="-43">ok[id]?</label>
+			<label kind="assignment" x="-297" y="-25">x=0</label>
+			<nail x="-340" y="-26"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="0" y="-85">x&gt;=3</label>
+			<label kind="synchronisation" x="0" y="-68">finish[id]!</label>
+			<nail x="-9" y="-26"/>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-136" y="-170">ok[id]?</label>
+			<label kind="assignment" x="-136" y="-153">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-306" y="-170">request[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>HMonitor</name>
+		<parameter>const mid m, const int[1,PROC] qs, const int cn, const int[1,PROC] cqs</parameter>
+		<declaration>int[NONE,PROC-1] owner;
+
+typedef struct{
+   pid q[qs];
+   int[0,qs-1] in, out;
+   bool op;
+} queue;
+
+typedef struct{
+   pid q[cqs];
+   int[0,cqs-1] in, out;
+   bool op;
+} cqueue;
+
+cqueue cq[cn]; //condition waiting queues
+queue eq; //enter queue
+queue uq; //urgent queue
+
+void initialize(){
+      int i;
+      owner=NONE;
+      for( i=0; i&lt;CPL[m]; ++i ){
+	     cq[i].in=0; cq[i].out=0; cq[i].op=false;
+      } 
+      eq.in=0; eq.out=0; eq.op=false;
+      uq.in=0; uq.out=0; uq.op=false;
+}//initialize
+
+void enq(queue &amp;q, const pid p){
+	//pre: !full()
+	q.q[q.in]=p;
+	q.in=(q.in+1)%qs;
+	q.op=true;
+}//enq
+
+pid deq(queue &amp;q){
+	//pre: !empty
+	pid pro=q.q[q.out];
+	q.q[q.out]=0;
+	q.out=(q.out+1)%qs;
+	q.op=false;
+	return pro;
+}//deq
+
+bool empty(queue q){
+	return !q.op &amp;&amp; q.in==q.out;
+}//empty
+
+bool full(queue q){
+	return q.op &amp;&amp; q.in==q.out;
+}//full
+
+void cenq(cqueue &amp;q, const pid p){
+	//pre: !full()
+	q.q[q.in]=p;
+	q.in=(q.in+1)%cqs;
+	q.op=true;
+}//enq
+
+pid cdeq(cqueue &amp;q){
+	//pre: !empty
+	pid pro=q.q[q.out];
+	q.q[q.out]=0;
+	q.out=(q.out+1)%cqs;
+	q.op=false;
+	return pro;
+}//deq
+
+bool cempty(cqueue q){
+	return !q.op &amp;&amp; q.in==q.out;
+}//empty
+
+bool cfull(cqueue q){
+	return q.op &amp;&amp; q.in==q.out;
+}//full</declaration>
+		<location id="id26" x="-184" y="-408">
+			<committed/>
+		</location>
+		<location id="id27" x="-248" y="-328">
+			<committed/>
+		</location>
+		<location id="id28" x="-512" y="-184">
+			<committed/>
+		</location>
+		<location id="id29" x="-376" y="-376">
+			<committed/>
+		</location>
+		<location id="id30" x="-632" y="-56">
+			<committed/>
+		</location>
+		<location id="id31" x="-376" y="64">
+			<name x="-416" y="72">Error</name>
+			<committed/>
+		</location>
+		<location id="id32" x="-120" y="-160">
+			<name x="-96" y="-176">Locked</name>
+		</location>
+		<location id="id33" x="-632" y="-160">
+			<name x="-664" y="-200">UnLocked</name>
+		</location>
+		<init ref="id30"/>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-312" y="-424">go[owner]!</label>
+			<label kind="assignment" x="-320" y="-408">owner=deq(uq)</label>
+			<nail x="-344" y="-408"/>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-336" y="-376">go[owner]!</label>
+			<label kind="assignment" x="-336" y="-360">owner=deq(eq)</label>
+			<nail x="-280" y="-352"/>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-600" y="-192">go[owner]!</label>
+			<label kind="assignment" x="-600" y="-176">owner=NONE</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="select" x="-104" y="56">c:cid</label>
+			<label kind="guard" x="-224" y="72">!cempty(cq[c])&amp;&amp;full(uq)</label>
+			<label kind="synchronisation" x="-200" y="88">signal[c][m][owner]?</label>
+			<nail x="-72" y="-72"/>
+			<nail x="-72" y="112"/>
+			<nail x="-376" y="112"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id29"/>
+			<label kind="select" x="24" y="-176">c:cid</label>
+			<label kind="guard" x="8" y="-160">cempty(cq[c])</label>
+			<label kind="synchronisation" x="0" y="-144">signal[c][m][owner]?</label>
+			<nail x="104" y="-160"/>
+			<nail x="104" y="-456"/>
+			<nail x="-376" y="-456"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="select" x="-208" y="0">c:cid</label>
+			<label kind="guard" x="-224" y="16">cfull(cq[c])</label>
+			<label kind="synchronisation" x="-240" y="32">wait[c][m][owner]?</label>
+			<nail x="-112" y="-56"/>
+			<nail x="-240" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id29"/>
+			<label kind="select" x="24" y="-304">c:cid</label>
+			<label kind="guard" x="-8" y="-288">!empty(uq)&amp;&amp;
+!cfull(cq[c])</label>
+			<label kind="synchronisation" x="-16" y="-256">wait[c][m][owner]?</label>
+			<label kind="assignment" x="-16" y="-240">cenq(cq[c],owner),
+owner=deq(uq)</label>
+			<nail x="16" y="-208"/>
+			<nail x="16" y="-440"/>
+			<nail x="-360" y="-440"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id26"/>
+			<label kind="guard" x="-80" y="-384">!empty(uq)</label>
+			<label kind="synchronisation" x="-102" y="-365">unlock[m][owner]?</label>
+			<nail x="-24" y="-232"/>
+			<nail x="-24" y="-408"/>
+			<nail x="-168" y="-408"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id29"/>
+			<label kind="select" x="-144" y="-336">c:cid</label>
+			<label kind="guard" x="-144" y="-320">!cempty(cq[c])&amp;&amp;
+!full(uq)</label>
+			<label kind="synchronisation" x="-144" y="-288">signal[c][m][owner]?</label>
+			<label kind="assignment" x="-144" y="-272">enq(uq,owner),
+owner=cdeq(cq[c])</label>
+			<nail x="-120" y="-376"/>
+			<nail x="-352" y="-376"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-204" y="-59">lock[m][owner]?</label>
+			<nail x="-144" y="-64"/>
+			<nail x="-256" y="32"/>
+			<nail x="-352" y="56"/>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-224" y="-232">go[owner]!</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id29"/>
+			<label kind="select" x="-504" y="-336">id:pid</label>
+			<label kind="synchronisation" x="-504" y="-320">lock[m][id]?</label>
+			<label kind="assignment" x="-504" y="-304">owner=id</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id33"/>
+			<label kind="assignment" x="-664" y="-104">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="select" x="-288" y="-40">c:cid,id:pid</label>
+			<label kind="guard" x="-296" y="-24">id!=owner</label>
+			<label kind="synchronisation" x="-312" y="-8">signal[c][m][id]?</label>
+			<nail x="-168" y="-88"/>
+			<nail x="-304" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="select" x="-360" y="-112">id:pid</label>
+			<label kind="guard" x="-360" y="-96">id!=owner</label>
+			<label kind="synchronisation" x="-360" y="-80">unlock[m][id]?</label>
+			<nail x="-240" y="-128"/>
+			<nail x="-352" y="-32"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id31"/>
+			<label kind="select" x="-584" y="-72">c:cid,id:pid</label>
+			<label kind="synchronisation" x="-592" y="-56">signal[c][m][id]?</label>
+			<nail x="-592" y="-80"/>
+			<nail x="-448" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id28"/>
+			<label kind="guard" x="-448" y="-224">empty(uq)&amp;&amp;empty(eq)</label>
+			<label kind="synchronisation" x="-424" y="-208">unlock[m][owner]?</label>
+			<nail x="-248" y="-184"/>
+			<nail x="-496" y="-184"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id33"/>
+			<label kind="select" x="-416" y="-176">c:cid</label>
+			<label kind="guard" x="-544" y="-160">empty(uq)&amp;&amp;empty(eq)&amp;&amp;!cfull(cq[c])</label>
+			<label kind="synchronisation" x="-304" y="-160">wait[c][m][owner]?</label>
+			<label kind="assignment" x="-472" y="-136">cenq(cq[c],owner),owner=NONE</label>
+			<nail x="-248" y="-136"/>
+			<nail x="-512" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="select" x="-256" y="-128">id:pid</label>
+			<label kind="guard" x="-256" y="-112">id!=owner &amp;&amp; 
+full(eq)</label>
+			<label kind="synchronisation" x="-256" y="-80">lock[m][id]?</label>
+			<nail x="-208" y="-120"/>
+			<nail x="-344" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id29"/>
+			<label kind="select" x="-392" y="-344">c:cid</label>
+			<label kind="guard" x="-392" y="-328">empty(uq)&amp;&amp;
+!empty(eq)&amp;&amp; 
+!cfull(cq[c])</label>
+			<label kind="synchronisation" x="-392" y="-280">wait[c][m][owner]?</label>
+			<label kind="assignment" x="-392" y="-264">cenq(cq[c],owner),
+owner=deq(eq)</label>
+			<nail x="-216" y="-184"/>
+			<nail x="-344" y="-296"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id32"/>
+			<label kind="select" x="0" y="-112">id:pid</label>
+			<label kind="guard" x="0" y="-96">id!=owner &amp;&amp; 
+!full(eq)</label>
+			<label kind="synchronisation" x="0" y="-64">lock[m][id]?</label>
+			<label kind="assignment" x="0" y="-48">enq(eq,id)</label>
+			<nail x="0" y="-112"/>
+			<nail x="-32" y="-72"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id31"/>
+			<label kind="select" x="-496" y="-104">id:pid</label>
+			<label kind="synchronisation" x="-496" y="-88">unlock[m][id]?</label>
+			<nail x="-536" y="-128"/>
+			<nail x="-400" y="-32"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id31"/>
+			<label kind="select" x="-480" y="-32">c:cid,id:pid</label>
+			<label kind="synchronisation" x="-480" y="-16">wait[c][m][id]?</label>
+			<nail x="-552" y="-96"/>
+			<nail x="-416" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id27"/>
+			<label kind="guard" x="-248" y="-320">empty(uq)&amp;&amp;
+!empty(eq)</label>
+			<label kind="synchronisation" x="-263" y="-289">unlock[m][owner]?</label>
+			<nail x="-152" y="-248"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+mon = HMonitor(m,PROC-1,2,PROC-1);
+// List one or more processes to be composed into a system.
+system ProcessoA,ProcessoB,Gestore,mon;
+    </system>
+	<queries>
+		<query>
+			<formula>ProcessoA(0).Req --&gt; ProcessoA(0).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ( it_gest == 4 &amp;&amp; ( accessi[0] == 3 || accessi[1] == 3 ))
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] it_gest==4 imply ( accessi[0]!=3 || accessi[1]!=3)
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; accessi[0]==2 &amp;&amp; accessi[1]==-2
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] ProcessoA(0).Inside imply !ProcessoB(1).Inside &amp;&amp; ProcessoB(1).Inside imply !ProcessoA(0).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ProcessoA(0).Inside &amp;&amp; ProcessoB(1).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>ProcessoB(1).Req --&gt; ProcessoB(1).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROC=5;
+typedef int[0,PROC-1] pid;
+
+//canali semafori
+broadcast chan check;
+
+//canali gestore
+chan request[pid];
+chan finish[pid];
+chan ok[pid];
+
+bool release=false;
+int cnt=0;
+
+</declaration>
+	<template>
+		<name>Manager</name>
+		<parameter>const pid p</parameter>
+		<location id="id0" x="-14744" y="-14888">
+			<committed/>
+		</location>
+		<location id="id1" x="-14744" y="-14728">
+			<committed/>
+		</location>
+		<location id="id2" x="-14744" y="-14920">
+			<name x="-14752" y="-14952">WAIT</name>
+		</location>
+		<location id="id3" x="-14880" y="-14728">
+			<committed/>
+		</location>
+		<location id="id4" x="-14880" y="-14920">
+			<committed/>
+		</location>
+		<location id="id5" x="-14880" y="-14816">
+			<name x="-14936" y="-14824">Home</name>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-14832" y="-14696">cnt&gt;0</label>
+			<nail x="-14856" y="-14696"/>
+			<nail x="-14768" y="-14696"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-14816" y="-14840">ok[p]!</label>
+			<nail x="-14744" y="-14824"/>
+			<nail x="-14840" y="-14824"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-14832" y="-14904">!release</label>
+			<label kind="assignment" x="-14856" y="-14888">cnt++,release=
+(cnt==3)?true:
+release</label>
+			<nail x="-14856" y="-14888"/>
+			<nail x="-14832" y="-14888"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-14816" y="-14808">ok[p]!</label>
+			<nail x="-14744" y="-14760"/>
+			<nail x="-14744" y="-14808"/>
+			<nail x="-14840" y="-14808"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-14840" y="-14760">cnt==0</label>
+			<label kind="synchronisation" x="-14840" y="-14744">check!</label>
+			<label kind="assignment" x="-14856" y="-14728">release=false</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-14832" y="-14968">check?</label>
+			<nail x="-14768" y="-14952"/>
+			<nail x="-14856" y="-14952"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-14832" y="-14936">release</label>
+			<nail x="-14840" y="-14920"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-14936" y="-14776">finish[p]?</label>
+			<label kind="assignment" x="-14920" y="-14760">cnt--</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-14952" y="-14872">request[p]?</label>
+			<nail x="-14880" y="-14904"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Process</name>
+		<parameter>const pid p</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id6" x="-168" y="-88">
+		</location>
+		<location id="id7" x="-280" y="-88">
+			<name x="-290" y="-118">IN</name>
+			<label kind="invariant" x="-296" y="-80">x&lt;=4</label>
+		</location>
+		<location id="id8" x="-376" y="-88">
+			<name x="-392" y="-120">REQ</name>
+		</location>
+		<location id="id9" x="-488" y="-88">
+			<name x="-544" y="-96">Home</name>
+		</location>
+		<init ref="id9"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-344" y="-56">ok[p]?</label>
+			<nail x="-168" y="-40"/>
+			<nail x="-488" y="-40"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-248" y="-128">x&gt;=1</label>
+			<label kind="synchronisation" x="-248" y="-112">finish[p]!</label>
+			<nail x="-192" y="-88"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-344" y="-112">ok[p]?</label>
+			<label kind="assignment" x="-336" y="-88">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-464" y="-112">request[p]!</label>
+			<label kind="assignment" x="-448" y="-88">x=0</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+system Manager,Process;</system>
+</nta>

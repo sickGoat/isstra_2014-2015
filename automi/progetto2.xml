@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+  <declaration>//Insert declarations of global clocks, variables, constants and channels.
+broadcast chan end_fire;
+
+typedef struct{
+  int index;
+  int weight;
+} Info;
+
+const int T = 16;
+const int P = 12;
+const int PRE = 2;
+const int POST = 2;
+const int P0 = 0;
+const int P1 = 1;
+const int P2 = 2;
+const int P3 = 3;
+const int P8 = 4;
+const int P9 = 5;
+const int P10 = 6;
+const int P11 = 7;
+const int P4 = 8;
+const int P5 = 9;
+const int P6 = 10;
+const int P7 = 11;
+
+const Info B[T][PRE] = {
+{{0,1},{5,1}},
+{{1,1},{-1,0}},
+{{2,1},{7,1}},
+{{3,1},{-1,0}},
+{{0,1},{-1,0}},
+{{4,1},{-1,0}},
+{{5,1},{-1,0}},
+{{6,1},{-1,0}},
+{{7,1},{-1,0}},
+{{2,1},{-1,0}},
+{{11,1},{4,1}},
+{{8,1},{-1,0}},
+{{9,1},{6,1}},
+{{10,1},{-1,0}},
+{{6,1},{11,1}},
+{{9,1},{4,1}}
+};
+
+const Info F[T][POST]= {
+{{1,1},{-1,0}},
+{{2,1},{6,1}},
+{{3,1},{-1,0}},
+{{0,1},{4,1}},
+{{0,1},{4,1}},
+{{-1,0},{-1,0}},
+{{-1,0},{-1,0}},
+{{-1,0},{-1,0}},
+{{-1,0},{-1,0}},
+{{2,1},{6,1}},
+{{8,1},{-1,0}},
+{{9,1},{5,1}},
+{{10,1},{-1,0}},
+{{11,1},{7,1}},
+{{10,1},{-1,0}},
+{{8,1},{-1,0}}
+};
+
+const int I[T][2] = {
+{0,1},
+{0,-1},
+{0,1},
+{0,-1},
+{5,6},
+{0,1},
+{0,1},
+{0,1},
+{0,1},
+{5,6},
+{0,1},
+{0,2},
+{0,1},
+{0,2},
+{0,1},
+{0,1}
+};
+
+int[0,1] M[P]={ 0,0,0,1,0,0,0,0,0,0,0,1 };
+
+const int INF = -1;
+typedef int[0,T-1] tid;
+
+clock x[T];
+
+bool enabled( const tid ID ){
+  int p;
+  for(p=0;p&lt;PRE &amp;&amp; B[ID][p].index!=-1 ;++p)
+    if (B[ID][p].weight&gt;0 &amp;&amp; M[B[ID][p].index]&lt;B[ID][p].weight ||
+        B[ID][p].weight==0 &amp;&amp; M[B[ID][p].index]&gt;0)
+      return false;
+  return true;
+}//enabled
+
+void withdraw( const tid ID ){
+  int p;
+  for(p=0;p&lt;PRE &amp;&amp; B[ID][p].index!=-1;++p){
+    M[B[ID][p].index]-=B[ID][p].weight;
+  }
+}//withdraw
+
+void deposit( const tid ID ){
+  int p;
+  for(p=0;p&lt;POST &amp;&amp; F[ID][p].index!=-1;++p){
+    M[F[ID][p].index]+=F[ID][p].weight;
+  }
+}//deposit
+
+</declaration>
+<template><name>Transition</name><parameter>const tid ID</parameter><location id="id0" x="0" y="-104"><name x="-48" y="-136">Firing</name><label kind="invariant" x="0" y="-152">I[ID][1]==INF ||
+x[ID]&lt;=I[ID][1]</label></location><location id="id1" x="176" y="64"><name x="176" y="80">Withdraw</name><committed/>
+</location><location id="id2" x="0" y="64"><name x="-24" y="72">Deposit</name><committed/></location>
+<location id="id3" x="-176" y="64"><name x="-232" y="72">Disabled</name></location><init ref="id3"/>
+<transition><source ref="id3"/><target ref="id0"/><label kind="guard" x="-152" y="-48">enabled(ID)</label><label kind="synchronisation" x="-152" y="-32">end_fire?</label><label kind="assignment" x="-136" y="-16">x[ID]=0</label>
+</transition><transition><source ref="id0"/><target ref="id3"/><label kind="guard" x="-168" y="-128">!enabled(ID)</label>
+<label kind="synchronisation" x="-168" y="-104">end_fire?</label><label kind="assignment" x="-104" y="-104"></label><nail x="-176" y="-104"/>
+</transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="0" y="-48">enabled(ID)</label>
+<label kind="synchronisation" x="0" y="-32">end_fire!</label><label kind="assignment" x="0" y="-16">x[ID]=0</label>
+</transition><transition><source ref="id0"/><target ref="id1"/><label kind="guard" x="104" y="-128">x[ID]&gt;=I[ID][0]</label>
+<label kind="assignment" x="88" y="-104">withdraw(ID)</label><nail x="176" y="-104"/></transition>
+<transition><source ref="id1"/><target ref="id2"/><label kind="synchronisation" x="56" y="40">end_fire!</label>
+<label kind="assignment" x="48" y="64">deposit(ID)</label></transition><transition><source ref="id2"/><target ref="id3"/>
+<label kind="guard" x="-120" y="40">!enabled(ID)</label><label kind="synchronisation" x="-120" y="64">end_fire!</label></transition></template>
+
+<template><name>Starter</name><location id="id4" x="-56" y="-8"></location>
+<location id="id5" x="-184" y="-8"><name x="-232" y="-24">Start</name><committed/>
+</location><init ref="id5"/><transition><source ref="id5"/><target ref="id4"/>
+<label kind="synchronisation" x="-152" y="-32">end_fire!</label>
+</transition>
+</template> 
+ 
+ 
+ 
+
+ 
+<system>//Edit system definition.
+system Starter,Transition;
+</system>
+</nta>

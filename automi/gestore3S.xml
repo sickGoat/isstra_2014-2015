@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
+const int PROC=5;
+const int SEM=2;
+typedef int[0,PROC-1] pid;
+typedef int[0,SEM-1] sid;
+
+//id semafori
+const int MUTEX=0;
+const int WAIT=1;
+
+meta pid proc;
+
+//canali semafori
+chan P[sid];
+chan V[sid];
+chan GO[pid];
+
+//canali gestore
+chan request[pid];
+chan finish[pid];
+chan ok[pid];
+
+bool release=false;
+int cnt=0;
+int w=0;
+</declaration><template><name>Manager</name><parameter>const pid p</parameter><location id="id0" x="-2576" y="-3264"><committed/></location><location id="id1" x="-2712" y="-3416"><committed/></location><location id="id2" x="-2576" y="-3144"><committed/></location><location id="id3" x="-2816" y="-3144"><committed/></location><location id="id4" x="-2928" y="-3144"></location><location id="id5" x="-2576" y="-3416"><committed/></location><location id="id6" x="-2576" y="-3352"></location><location id="id7" x="-2712" y="-3352"><committed/></location><location id="id8" x="-2816" y="-3352"><committed/></location><location id="id9" x="-2920" y="-3352"></location><location id="id10" x="-3032" y="-3144"><committed/></location><location id="id11" x="-3032" y="-3352"><committed/></location><location id="id12" x="-3032" y="-3248"><name x="-3088" y="-3256">Home</name></location><init ref="id12"/><transition><source ref="id8"/><target ref="id0"/><label kind="guard" x="-2800" y="-3288">!release</label><nail x="-2816" y="-3264"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="-2784" y="-3216">cnt==0&amp;&amp;w&gt;0</label><label kind="synchronisation" x="-2680" y="-3216">V[WAIT]!</label><label kind="assignment" x="-2784" y="-3192">release=false</label><nail x="-2816" y="-3192"/><nail x="-2576" y="-3192"/></transition><transition><source ref="id1"/><target ref="id12"/><label kind="synchronisation" x="-2944" y="-3440">ok[p]!</label><nail x="-3072" y="-3416"/><nail x="-3072" y="-3280"/></transition><transition><source ref="id5"/><target ref="id1"/><label kind="guard" x="-2688" y="-3440">!release&amp;&amp;w&gt;0</label><label kind="synchronisation" x="-2672" y="-3416">V[WAIT]!</label></transition><transition><source ref="id2"/><target ref="id12"/><label kind="synchronisation" x="-3024" y="-3088">ok[p]!</label><nail x="-2536" y="-3144"/><nail x="-2536" y="-3064"/><nail x="-3072" y="-3064"/><nail x="-3072" y="-3216"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="-2784" y="-3120">cnt&gt;0</label><label kind="synchronisation" x="-2744" y="-3120">V[MUTEX]!</label><nail x="-2816" y="-3096"/><nail x="-2576" y="-3096"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="-2784" y="-3168">cnt==0&amp;&amp;w==0</label><label kind="synchronisation" x="-2680" y="-3168">V[MUTEX]!</label><label kind="assignment" x="-2784" y="-3144">release=false</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="-2888" y="-3168">GO[p]?</label><label kind="assignment" x="-2888" y="-3144">cnt--</label></transition><transition><source ref="id10"/><target ref="id4"/><label kind="synchronisation" x="-3016" y="-3168">P[MUTEX]!</label><label kind="assignment" x="-3008" y="-3144">proc=p</label></transition><transition><source ref="id0"/><target ref="id5"/><label kind="assignment" x="-2560" y="-3336">cnt++,
+release=
+(cnt==3)?true:release</label><nail x="-2528" y="-3264"/><nail x="-2528" y="-3416"/></transition><transition><source ref="id5"/><target ref="id1"/><label kind="guard" x="-2688" y="-3488">release||w==0</label><label kind="synchronisation" x="-2680" y="-3464">V[MUTEX]!</label><nail x="-2576" y="-3464"/><nail x="-2712" y="-3464"/><nail x="-2712" y="-3448"/></transition><transition><source ref="id6"/><target ref="id0"/><label kind="synchronisation" x="-2624" y="-3320">GO[p]?</label><label kind="assignment" x="-2608" y="-3304">w--</label></transition><transition><source ref="id7"/><target ref="id6"/><label kind="synchronisation" x="-2680" y="-3376">P[WAIT]!</label><label kind="assignment" x="-2680" y="-3352">proc=p</label></transition><transition><source ref="id8"/><target ref="id7"/><label kind="guard" x="-2792" y="-3376">release</label><label kind="synchronisation" x="-2800" y="-3352">V[MUTEX]!</label><label kind="assignment" x="-2776" y="-3336">w++</label></transition><transition><source ref="id9"/><target ref="id8"/><label kind="synchronisation" x="-2896" y="-3376">GO[p]?</label></transition><transition><source ref="id11"/><target ref="id9"/><label kind="synchronisation" x="-3016" y="-3376">P[MUTEX]!</label><label kind="assignment" x="-3000" y="-3352">proc=p</label></transition><transition><source ref="id12"/><target ref="id10"/><label kind="synchronisation" x="-3024" y="-3208">finish[p]?</label></transition><transition><source ref="id12"/><target ref="id11"/><label kind="synchronisation" x="-3024" y="-3304">request[p]?</label></transition></template><template><name x="5" y="5">Process</name><parameter>const pid p</parameter><declaration>// Place local declarations here.
+clock x;</declaration><location id="id13" x="-168" y="-88"></location><location id="id14" x="-280" y="-88"><name x="-290" y="-118">IN</name><label kind="invariant" x="-296" y="-80">x&lt;=4</label></location><location id="id15" x="-376" y="-88"><name x="-386" y="-118">REQ</name></location><location id="id16" x="-488" y="-88"><name x="-544" y="-96">Home</name></location><init ref="id16"/><transition><source ref="id13"/><target ref="id16"/><label kind="synchronisation" x="-344" y="-56">ok[p]?</label><nail x="-168" y="-40"/><nail x="-488" y="-40"/></transition><transition><source ref="id14"/><target ref="id13"/><label kind="guard" x="-248" y="-128">x&gt;=1</label><label kind="synchronisation" x="-248" y="-112">finish[p]!</label><nail x="-192" y="-88"/></transition><transition><source ref="id15"/><target ref="id14"/><label kind="synchronisation" x="-344" y="-112">ok[p]?</label><label kind="assignment" x="-336" y="-88">x=0</label></transition><transition><source ref="id16"/><target ref="id15"/><label kind="synchronisation" x="-464" y="-112">request[p]!</label><label kind="assignment" x="-448" y="-88">x=0</label></transition></template><template><name>BinarySemaphore</name><parameter>const sid s, const int[0,1] initial, const int[1,PROC] qs</parameter><declaration>pid q[qs];
+int[0,1] count;
+int[0,qs-1] in, out;
+bool op; //false=dequeue, true=enqueue
+
+void initialize(){
+	count=initial;
+	in=0; out=0;
+	op=false;
+}//initialize
+
+void enqueue(){
+	//pre: !full()
+	q[in]=proc;
+	in=(in+1)%qs;
+	op=true;
+}//enqueue
+
+pid dequeue(){
+	//pre: !empty
+	pid pro=q[out];
+	q[out]=0;
+	out=(out+1)%qs;
+	op=false;
+	return pro;
+}//dequeue
+
+bool empty(){
+	return !op &amp;&amp; in==out;
+}//empty
+
+bool full(){
+	return op &amp;&amp; in==out;
+}//full</declaration><location id="id17" x="-552" y="-96"><name x="-562" y="-126">Error</name><committed/></location><location id="id18" x="-440" y="64"><committed/></location><location id="id19" x="-584" y="-16"><committed/></location><location id="id20" x="-480" y="-112"><committed/></location><location id="id21" x="-480" y="-16"></location><init ref="id19"/><transition><source ref="id21"/><target ref="id17"/><label kind="guard" x="-640" y="-72">count==0 &amp;&amp; full()</label><label kind="synchronisation" x="-544" y="-56">P[s]?</label></transition><transition><source ref="id21"/><target ref="id21"/><label kind="guard" x="-640" y="24">count==0 &amp;&amp; !full()</label><label kind="synchronisation" x="-584" y="40">P[s]?</label><label kind="assignment" x="-608" y="56">enqueue()</label><nail x="-568" y="32"/><nail x="-536" y="64"/></transition><transition><source ref="id18"/><target ref="id21"/><label kind="synchronisation" x="-408" y="8">GO[q[out]]!</label><label kind="assignment" x="-400" y="24">dequeue()</label><nail x="-408" y="32"/></transition><transition><source ref="id21"/><target ref="id18"/><label kind="guard" x="-496" y="8">!empty()</label><label kind="synchronisation" x="-488" y="24">V[s]?</label></transition><transition><source ref="id21"/><target ref="id21"/><label kind="guard" x="-392" y="-72">empty()</label><label kind="synchronisation" x="-384" y="-56">V[s]?</label><label kind="assignment" x="-384" y="-40">count=1</label><nail x="-400" y="-64"/><nail x="-384" y="-24"/></transition><transition><source ref="id19"/><target ref="id21"/><label kind="assignment" x="-568" y="-32">initialize()</label></transition><transition><source ref="id20"/><target ref="id21"/><label kind="synchronisation" x="-520" y="-88">GO[q[in]]!</label><label kind="assignment" x="-512" y="-72">q[in]=0</label></transition><transition><source ref="id21"/><target ref="id20"/><label kind="guard" x="-432" y="-144">count==1</label><label kind="synchronisation" x="-432" y="-128">P[s]?</label><label kind="assignment" x="-432" y="-112">count=0,
+q[in]=proc</label><nail x="-432" y="-112"/></transition></template><system>// Place template instantiations here.
+m=BinarySemaphore(MUTEX,1,PROC-1);
+a=BinarySemaphore(WAIT,0,PROC-1);
+// List one or more processes to be composed into a system.
+system Manager,Process,m,a;</system></nta>

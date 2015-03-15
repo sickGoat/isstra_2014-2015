@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here
+typedef int[0,4] p_id;
+chan request[p_id];
+chan go[p_id];
+chan finish[p_id];
+broadcast chan check;
+int cnt = 0;
+bool complete = false;</declaration>
+	<template>
+		<name x="5" y="5">Processo</name>
+		<parameter>const p_id id</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id0" x="-578" y="-263">
+			<name x="-561" y="-272">Inside</name>
+			<label kind="invariant" x="-595" y="-297">x&lt;=4</label>
+		</location>
+		<location id="id1" x="-748" y="-263">
+		</location>
+		<location id="id2" x="-909" y="-263">
+			<name x="-960" y="-272">Start</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-773" y="-144">finish[id]!</label>
+			<nail x="-578" y="-153"/>
+			<nail x="-909" y="-153"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-680" y="-280">go[id]?</label>
+			<label kind="assignment" x="-680" y="-263">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-875" y="-280">request[id]!</label>
+			<label kind="assignment" x="-867" y="-263">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Gestore</name>
+		<parameter>const p_id id</parameter>
+		<location id="id3" x="-229" y="-153">
+			<committed/>
+		</location>
+		<location id="id4" x="-442" y="-153">
+			<name x="-476" y="-187">Wait</name>
+		</location>
+		<location id="id5" x="-230" y="-34">
+			<committed/>
+		</location>
+		<location id="id6" x="-230" y="102">
+			<name x="-213" y="85">In</name>
+		</location>
+		<location id="id7" x="-442" y="102">
+			<committed/>
+		</location>
+		<location id="id8" x="-442" y="-34">
+			<name x="-493" y="-42">Start</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-425" y="-119">!complete || (complete &amp;&amp; cnt&gt;0)</label>
+			<nail x="-246" y="-93"/>
+			<nail x="-416" y="-93"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-119" y="-127">!complete &amp;&amp; cnt&lt;3</label>
+			<label kind="assignment" x="-119" y="-110">cnt++</label>
+			<nail x="-119" y="-153"/>
+			<nail x="-119" y="229"/>
+			<nail x="-501" y="229"/>
+			<nail x="-501" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-382" y="-212">cnt==3</label>
+			<nail x="-272" y="-195"/>
+			<nail x="-399" y="-195"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-374" y="-170">check?</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-510" y="-127">complete</label>
+			<label kind="synchronisation" x="-527" y="-110">request[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-366" y="-68">complete &amp;&amp; 
+cnt==0</label>
+			<label kind="synchronisation" x="-366" y="-34">check!</label>
+			<label kind="assignment" x="-365" y="-17">complete=false</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-230" y="17">finish[id]?</label>
+			<label kind="assignment" x="-230" y="34">cnt--</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-382" y="85">go[id]!</label>
+			<label kind="assignment" x="-416" y="102">complete=(cnt==3)</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-527" y="0">!complete</label>
+			<label kind="synchronisation" x="-527" y="17">request[id]?</label>
+			<label kind="assignment" x="-527" y="34">cnt++</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+system Processo,Gestore;
+    </system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt;!deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt;deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

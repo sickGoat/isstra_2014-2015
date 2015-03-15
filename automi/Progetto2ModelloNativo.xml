@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+typedef int[0,1] message;
+chan canale; //sender e receiver comunicano attraverso l'automa canale
+meta message bit;
+
+</declaration>
+	<template>
+		<name x="5" y="5">Sender</name>
+		<declaration>// Place local declarations here.
+clock x=0;
+message last_bit;
+
+void switchMessage(){ last_bit = 1 - last_bit; }</declaration>
+		<location id="id0" x="-1411" y="-527">
+			<name x="-1394" y="-535">ack_ricevuto</name>
+			<committed/>
+		</location>
+		<location id="id1" x="-1623" y="-527">
+			<name x="-1640" y="-501">W_ack</name>
+			<label kind="invariant" x="-1640" y="-518">x&lt;=6</label>
+		</location>
+		<location id="id2" x="-1844" y="-527">
+			<name x="-1854" y="-561">Start</name>
+			<committed/>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1700" y="-688">x&gt;=5</label>
+			<label kind="synchronisation" x="-1700" y="-671">canale!</label>
+			<label kind="assignment" x="-1700" y="-654">bit=last_bit</label>
+			<nail x="-1718" y="-637"/>
+			<nail x="-1624" y="-637"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-1572" y="-603">canale!</label>
+			<label kind="assignment" x="-1572" y="-586">bit=last_bit,
+x=0</label>
+			<nail x="-1462" y="-586"/>
+			<nail x="-1589" y="-586"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-1564" y="-544">bit==last_bit</label>
+			<label kind="synchronisation" x="-1564" y="-527">canale?</label>
+			<label kind="assignment" x="-1564" y="-510">switchMessage()</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="select" x="-1785" y="-561">t:message</label>
+			<label kind="synchronisation" x="-1785" y="-544">canale!</label>
+			<label kind="assignment" x="-1785" y="-527">bit=t,
+last_bit=t,
+x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Canale</name>
+		<declaration>clock x;
+message on_air;
+</declaration>
+		<location id="id3" x="-136" y="-170">
+			<name x="-119" y="-187">Ricevuto</name>
+		</location>
+		<location id="id4" x="-272" y="-110">
+		</location>
+		<location id="id5" x="-442" y="-110">
+			<name x="-452" y="-144">Start</name>
+			<committed/>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+		</transition>
+	</template>
+	<template>
+		<name>Receiver</name>
+		<location id="id6" x="0" y="0">
+		</location>
+		<init ref="id6"/>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+	</queries>
+</nta>

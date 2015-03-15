@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>//Insert declarations of global clocks, variables, constants and channels.
+broadcast chan end_fire;
+
+typedef struct{
+  int index;
+  int weight;
+} Info;
+
+const int INF = -1;
+const int T = 6;
+const int P = 3;
+const int PRE = 1;
+const int POST = 1;
+
+const Info B[T][PRE] = {
+{{-1,0}}, //t0
+{{0,1}},  //t1
+{{-1,0}}, //t2
+{{1,1}},  //t3
+{{-1,0}}, //t4
+{{2,1}}   //t5 
+};
+
+const Info F[T][POST]= {
+{{0,1}},  //t0 
+{{-1,0}}, //t1
+{{1,1}},  //t2
+{{-1,0}}, //t3 
+{{2,1}},  //t4 
+{{-1,0}}  //t5 
+};
+
+const int I[T][2] = {
+{5,5},   //t0
+{1,2},   //t1
+{10,10}, //t2 {10,-1}
+{2,3},   //t3
+{15,15}, //t4
+{2,3}    //t5
+};
+
+int M[P]={ 1,1,1 };
+
+const int CPU=1;
+const int TASK=3;
+const int TT=1;
+
+typedef int[0,TASK-1] task_t;
+typedef int[0,CPU-1] cpu_t;
+typedef int[0,T-1] tid;
+
+typedef struct{
+  int[0,T] index;
+  int[0,3] prior;
+} P_Info;
+
+typedef struct{
+  int[0,T] index;
+  int[0,1] ready;
+} R_Info;
+
+//fps
+const P_Info fixed_priority[CPU][TASK][TT]={
+ { 
+  { {1,3} },
+  { {3,2} },
+  { {5,1} }
+ }
+};
+
+R_Info request[CPU][TASK][TT]={
+ { 
+  { {1,0} },
+  { {3,0} },
+  { {5,0} }
+ }
+};
+
+chan dispatch[T];
+broadcast chan preempt[CPU];
+
+clock time[TASK];
+clock x[TASK];
+
+const cpu_t cpu0=0;
+const task_t task0=0;
+const task_t task1=1;
+const task_t task2=2;
+
+bool enabled( const tid ID ){
+  int p;
+  for( p=0; p&lt;PRE &amp;&amp; B[ID][p].index!=-1 ; ++p )
+    if( B[ID][p].weight&gt;0 &amp;&amp; M[B[ID][p].index]&lt;B[ID][p].weight ||
+        B[ID][p].weight==0 &amp;&amp; M[B[ID][p].index]&gt;0 )
+      return false;
+  return true;
+}//enabled
+
+void withdraw( const tid ID ){
+  int p;
+  for( p=0; p&lt;PRE &amp;&amp; B[ID][p].index!=-1; ++p ){
+    M[B[ID][p].index]-=B[ID][p].weight;
+  }
+}//withdraw
+
+void deposit( const tid ID ){
+  int p;
+  for( p=0; p&lt;POST &amp;&amp; F[ID][p].index!=-1; ++p ){
+    M[F[ID][p].index]+=F[ID][p].weight;
+  }
+}//deposit
+</declaration>
+	<template>
+		<name>Fps</name>
+		<parameter>const cpu_t cpu</parameter>
+		<declaration>
+bool requests(){
+   int i,j;
+   for( i=0; i&lt;TASK; i++ )
+      for( j=0; j&lt;TT; j++ )
+          if( request[cpu][i][j].index!=T &amp;&amp; request[cpu][i][j].ready&gt;0 ) return true;
+   return false;
+}//requests
+
+int[0,T] next(){
+   int[0,TASK] i;
+   int[0,TT] j, hpid;
+   int[-1,TASK] hpt=-1;
+   for( i=0; i&lt;TASK; i++ )
+      for( j=0; j&lt;TT; j++ )
+         if( request[cpu][i][j].index&lt;T &amp;&amp; request[cpu][i][j].ready&gt;0 ){
+             if( hpt==-1 || fixed_priority[cpu][i][j].prior&gt;fixed_priority[cpu][hpt][hpid].prior ){
+                 hpt=i; hpid=j;
+             }
+         }
+   return fixed_priority[cpu][hpt][hpid].index;
+}//next</declaration>
+		<location id="id0" x="-2016" y="-352">
+			<committed/>
+		</location>
+		<location id="id1" x="-1864" y="-416">
+			<name x="-1848" y="-424">Selection</name>
+			<urgent/>
+		</location>
+		<location id="id2" x="-2016" y="-416">
+			<name x="-2064" y="-424">FPS</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-1976" y="-504">!requests()</label>
+			<nail x="-1864" y="-480"/>
+			<nail x="-2016" y="-480"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-2008" y="-392">preempt[cpu]!</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-1968" y="-352">requests()</label>
+			<label kind="synchronisation" x="-1984" y="-336">dispatch[next()]!</label>
+			<nail x="-1864" y="-352"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-1968" y="-440">end_fire?</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Transition</name>
+		<parameter>const tid ID, const task_t taskId, const cpu_t cpu</parameter>
+		<declaration>//Insert local declarations of clocks, variables and constants.</declaration>
+		<location id="id3" x="-51" y="110">
+			<committed/>
+		</location>
+		<location id="id4" x="76" y="110">
+			<name x="92" y="102">W</name>
+			<committed/>
+		</location>
+		<location id="id5" x="-51" y="-8">
+			<name x="-42" y="-8">F</name>
+			<label kind="invariant" x="-93" y="-68">I[ID][1]==INF ||
+time[taskId]&lt;=I[ID][1]</label>
+		</location>
+		<location id="id6" x="-187" y="110">
+			<name x="-211" y="102">D</name>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-42" y="25">enabled(ID)</label>
+			<label kind="synchronisation" x="-42" y="42">end_fire!</label>
+			<label kind="assignment" x="-42" y="59">time[taskId]=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-153" y="93">!enabled(ID)</label>
+			<label kind="synchronisation" x="-144" y="110">end_fire!</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-8" y="93">end_fire!</label>
+			<label kind="assignment" x="-17" y="110">deposit(ID)</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-187" y="-25">!enabled(ID)</label>
+			<label kind="synchronisation" x="-178" y="-8">end_fire?</label>
+			<nail x="-187" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-34" y="-25">time[taskId]&gt;=I[ID][0]</label>
+			<label kind="assignment" x="-8" y="-8">withdraw(ID)</label>
+			<nail x="-34" y="-8"/>
+			<nail x="76" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-153" y="25">enabled(ID)</label>
+			<label kind="synchronisation" x="-161" y="42">end_fire?</label>
+			<label kind="assignment" x="-170" y="59">time[taskId]=0</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">pTransition</name>
+		<parameter>const tid ID, task_t taskId, const cpu_t cpu</parameter>
+		<declaration>//Insert local declarations of clocks, variables and constants.
+
+bool this; //this task instance
+
+void arrival(){
+   int[0,TT] j;
+   for( j=0; j&lt;TT; j++ )
+       if( request[cpu][taskId][j].index==ID ){
+             request[cpu][taskId][j].ready++; return;
+       }
+}//arrival
+
+void finish(){
+   int[0,TT] j;
+   for( j=0; j&lt;TT; j++ )
+       if( request[cpu][taskId][j].index==ID ){
+             request[cpu][taskId][j].ready--; return;
+       }
+}//finish
+ 
+ </declaration>
+		<location id="id7" x="561" y="238">
+			<committed/>
+		</location>
+		<location id="id8" x="561" y="8">
+			<name x="551" y="-22">C2</name>
+			<committed/>
+		</location>
+		<location id="id9" x="705" y="68">
+			<name x="713" y="44">FC</name>
+			<urgent/>
+		</location>
+		<location id="id10" x="289" y="68">
+			<name x="257" y="60">NP</name>
+			<label kind="invariant" x="297" y="43">x[taskId]'==0</label>
+		</location>
+		<location id="id11" x="416" y="68">
+			<name x="382" y="51">C1</name>
+			<urgent/>
+		</location>
+		<location id="id12" x="705" y="238">
+			<name x="721" y="238">W</name>
+			<committed/>
+		</location>
+		<location id="id13" x="561" y="68">
+			<name x="545" y="44">F</name>
+			<label kind="invariant" x="569" y="68">x[taskId]&lt;=I[ID][1]</label>
+		</location>
+		<location id="id14" x="416" y="238">
+			<name x="400" y="246">D</name>
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id11"/>
+			<label kind="guard" x="382" y="144">enabled(ID)</label>
+			<label kind="synchronisation" x="391" y="161">end_fire!</label>
+			<label kind="assignment" x="391" y="178">arrival(),
+x[taskId]=0</label>
+			<nail x="561" y="204"/>
+			<nail x="416" y="204"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id14"/>
+			<label kind="guard" x="459" y="221">!enabled(ID)</label>
+			<label kind="synchronisation" x="467" y="238">end_fire!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id11"/>
+			<label kind="guard" x="442" y="-8">x[taskId]&lt;I[ID][1]</label>
+			<nail x="450" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="guard" x="586" y="-8">x[taskId]==I[ID][1]</label>
+			<label kind="assignment" x="646" y="8">finish()</label>
+			<nail x="688" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="guard" x="323" y="-8">enabled(ID)</label>
+			<label kind="synchronisation" x="323" y="8">end_fire?</label>
+			<nail x="314" y="8"/>
+			<nail x="399" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id14"/>
+			<label kind="guard" x="433" y="102">!enabled(ID)</label>
+			<label kind="assignment" x="433" y="119">finish()</label>
+			<nail x="467" y="110"/>
+			<nail x="467" y="204"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id14"/>
+			<label kind="guard" x="595" y="272">!enabled(ID)</label>
+			<label kind="synchronisation" x="595" y="289">end_fire?</label>
+			<nail x="748" y="76"/>
+			<nail x="748" y="289"/>
+			<nail x="416" y="289"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id12"/>
+			<label kind="guard" x="664" y="152">enabled(ID)</label>
+			<label kind="assignment" x="663" y="170">withdraw(ID)</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id8"/>
+			<label kind="guard" x="569" y="25">enabled(ID)</label>
+			<label kind="synchronisation" x="569" y="42">end_fire?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id11"/>
+			<label kind="guard" x="306" y="102">enabled(ID)</label>
+			<label kind="synchronisation" x="314" y="119">end_fire?</label>
+			<label kind="assignment" x="314" y="136">arrival(),
+x[taskId]=0</label>
+			<nail x="365" y="204"/>
+			<nail x="365" y="110"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id14"/>
+			<label kind="guard" x="288" y="240">!enabled(ID)</label>
+			<label kind="synchronisation" x="288" y="256">end_fire?</label>
+			<label kind="assignment" x="288" y="272">finish()</label>
+			<nail x="288" y="128"/>
+			<nail x="289" y="238"/>
+			<nail x="374" y="238"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="450" y="68">dispatch[ID]?</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="306" y="68">preempt[cpu]?</label>
+			<nail x="382" y="68"/>
+			<nail x="306" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="603" y="221">end_fire!</label>
+			<label kind="assignment" x="603" y="238">deposit(ID)</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id14"/>
+			<label kind="guard" x="484" y="136">!enabled(ID)</label>
+			<label kind="synchronisation" x="493" y="153">end_fire?</label>
+			<label kind="assignment" x="493" y="170">finish()</label>
+			<nail x="512" y="200"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="guard" x="568" y="128">x[taskId]&gt;=I[ID][0]</label>
+			<label kind="assignment" x="569" y="144">withdraw(ID),
+finish()</label>
+			<nail x="616" y="200"/>
+		</transition>
+	</template>
+	<template>
+		<name>Starter</name>
+		<location id="id15" x="-229" y="-195">
+		</location>
+		<location id="id16" x="-331" y="-195">
+			<name x="-357" y="-229">Start</name>
+			<committed/>
+		</location>
+		<init ref="id16"/>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-314" y="-221">end_fire!</label>
+		</transition>
+	</template>
+	<system>//Insert process assignements.
+t0=Transition(0,task0,cpu0);
+t1=pTransition(1,task0,cpu0);
+t2=Transition(2,task1,cpu0);
+t3=pTransition(3,task1,cpu0);
+t4=Transition(4,task2,cpu0);
+t5=pTransition(5,task2,cpu0);
+fps1=Fps(cpu0);
+//Edit system definition.
+system Starter,t0,t1,t2,t3,t4,t5,fps1;</system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt; deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

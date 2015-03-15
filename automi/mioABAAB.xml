@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROC_A = 3;
+const int PROC_B = 2;
+const int PROC = PROC_A + PROC_B;
+/*
+    definizione semafori
+*/
+const int SEM = 3;
+typedef int[0,SEM-1] s_id;
+const int MUTEX = 0;
+const int sA = 1;
+const int sB = 2;
+/*
+    typdef per indicizzare i processi,
+    in genere avremo tante definizioni 
+    quanti sono i semafori
+*/
+typedef int[0,PROC-1]p_id;//mutex lavorera con questi indici, perche deve gestire tutti i processi
+typedef int[0,PROC_A-1] a_id;//semaforo per i soli processi A
+typedef int[PROC_A,PROC-1] b_id;//semaforo per i soli processi B
+
+chan acquire[s_id];
+chan release[s_id];
+chan go[p_id];
+
+meta p_id proc;
+meta int perms;
+
+/*
+    array per simulare la stampa
+*/
+const int a=1,b=0;
+int[b,a] T[PROC];
+int i=0;</declaration>
+	<template>
+		<name x="5" y="5">Jsemaphore</name>
+		<parameter>const s_id id,const int initial,const int[1,PROC]qs,bool fairness</parameter>
+		<declaration>// Place local declarations here.
+p_id q[qs];
+int permits;
+int ask_perm[qs];
+int[0,qs-1] in,out;
+bool fair,op;
+p_id pid;
+int ask;
+
+void initialize(){
+    permits = initial;
+    fair = fairness;
+    in = 0; 
+    out = 0;    
+}
+
+void enqueue(){
+    ask_perm[in] = ask;
+    q[in] = pid;
+    in = (in+1)%qs;
+    op = true;
+}
+
+p_id dequeue(){
+    p_id next = q[out];
+    permits = permits-ask_perm[out];
+    ask_perm[out] = 0;
+    q[out]=0;
+    out = (out+1)%qs;
+    op = false;
+    return next;
+}
+
+bool canWake(){ return ask_perm[out]&lt;=permits; }
+
+bool full(){ return op &amp;&amp; in==out; }
+
+bool empty(){ return !op &amp;&amp; in==out; }</declaration>
+		<location id="id0" x="-255" y="-127">
+			<committed/>
+		</location>
+		<location id="id1" x="-493" y="-127">
+			<committed/>
+		</location>
+		<location id="id2" x="-493" y="-612">
+			<name x="-503" y="-646">Error</name>
+			<committed/>
+		</location>
+		<location id="id3" x="-493" y="-484">
+			<committed/>
+		</location>
+		<location id="id4" x="-493" y="-348">
+			<name x="-552" y="-348">Home</name>
+		</location>
+		<location id="id5" x="-773" y="-348">
+			<committed/>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-153" y="-238">!empty() &amp;&amp; canWake()</label>
+			<label kind="synchronisation" x="-153" y="-221">go[pid]!</label>
+			<label kind="assignment" x="-153" y="-204">pid=dequeue()</label>
+			<nail x="-179" y="-234"/>
+			<nail x="-128" y="-140"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-382" y="-280">empty() || !canWake()</label>
+			<label kind="synchronisation" x="-382" y="-263">go[pid]!</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-459" y="-144">!empty() &amp;&amp; canWake()</label>
+			<label kind="assignment" x="-459" y="-127">pid=dequeue()</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-714" y="-195">empty() || !canWake()</label>
+			<nail x="-569" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-484" y="-229">release[id]?</label>
+			<label kind="assignment" x="-484" y="-212">permits+=perms</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-765" y="-629">initial&lt;0</label>
+			<nail x="-799" y="-348"/>
+			<nail x="-799" y="-612"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-484" y="-586">full()</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-722" y="-535">(ask&gt;permits || fair &amp;&amp;
+!empty())&amp;&amp;
+!full()</label>
+			<label kind="assignment" x="-722" y="-484">enqueue()</label>
+			<nail x="-638" y="-484"/>
+			<nail x="-638" y="-365"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-484" y="-518">(!fair || empty()) &amp;&amp; ask&lt;=permits</label>
+			<label kind="synchronisation" x="-475" y="-501">go[pid]!</label>
+			<label kind="assignment" x="-475" y="-484">permits -= ask</label>
+			<nail x="-340" y="-484"/>
+			<nail x="-340" y="-365"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-484" y="-433">acquire[id]?</label>
+			<label kind="assignment" x="-485" y="-416">pid = proc,
+ask= perms</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-731" y="-365">initial&gt;=0</label>
+			<label kind="assignment" x="-731" y="-348">initialize()</label>
+		</transition>
+	</template>
+	<template>
+		<name>ProcessoA</name>
+		<parameter>const a_id id</parameter>
+		<location id="id6" x="-739" y="-59">
+		</location>
+		<location id="id7" x="-340" y="-246">
+			<urgent/>
+		</location>
+		<location id="id8" x="-450" y="-59">
+			<urgent/>
+		</location>
+		<location id="id9" x="-144" y="-59">
+			<name x="-136" y="-93">C_S</name>
+		</location>
+		<location id="id10" x="-144" y="-246">
+		</location>
+		<location id="id11" x="-544" y="-246">
+		</location>
+		<location id="id12" x="-799" y="-246">
+			<urgent/>
+		</location>
+		<init ref="id12"/>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-680" y="-76">release[MUTEX]!</label>
+			<label kind="assignment" x="-680" y="-59">perms=1,
+T[i++]=a</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-289" y="-76">release[sB]!</label>
+			<label kind="assignment" x="-280" y="-59">perms=1</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-136" y="-170">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-306" y="-263">acquire[MUTEX]!</label>
+			<label kind="assignment" x="-306" y="-246">proc=id,
+perms=1</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-484" y="-263">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-714" y="-263">acquire[sA]!</label>
+			<label kind="assignment" x="-714" y="-246">proc=id,
+perms=1</label>
+		</transition>
+	</template>
+	<template>
+		<name>ProcessoB</name>
+		<parameter>const b_id id</parameter>
+		<location id="id13" x="-331" y="25">
+		</location>
+		<location id="id14" x="-127" y="25">
+			<urgent/>
+		</location>
+		<location id="id15" x="102" y="25">
+		</location>
+		<location id="id16" x="102" y="-127">
+		</location>
+		<location id="id17" x="-68" y="-127">
+			<urgent/>
+		</location>
+		<location id="id18" x="-255" y="-127">
+		</location>
+		<location id="id19" x="-450" y="-127">
+			<urgent/>
+		</location>
+		<init ref="id19"/>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-272" y="8">release[MUTEX]!</label>
+			<label kind="assignment" x="-272" y="25">perms=1,
+T[i++]=b</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-76" y="8">release[sA]!</label>
+			<label kind="assignment" x="-76" y="25">perms=2</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="102" y="-59">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-50" y="-144">acquire[MUTEX]!</label>
+			<label kind="assignment" x="-50" y="-127">perms=1,
+proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-195" y="-144">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-416" y="-144">acquire[sB]!</label>
+			<label kind="assignment" x="-416" y="-127">proc=id,
+perms=2</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+mutex = Jsemaphore(MUTEX,1,2,true);
+semA = Jsemaphore(sA,1,2,true);
+semB = Jsemaphore(sB,1,2,true);
+// List one or more processes to be composed into a system.
+system ProcessoA,ProcessoB,semA,semB,mutex;
+    </system>
+	<queries>
+		<query>
+			<formula>A[] i==5 imply T[0]==a &amp;&amp; T[1] == b &amp;&amp; T[2]==a &amp;&amp; T[3]==a &amp;&amp; T[4]==b
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

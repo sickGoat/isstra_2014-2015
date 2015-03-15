@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int PROCA=3;
+const int PROCB=2;
+const int PROC=PROCA+PROCB;
+typedef int[0,PROC-1] pid;
+typedef int[0,PROCA-1] aid;
+typedef int[PROCA,PROC-1] bid;
+const int SEM=4;
+typedef int[0,SEM-1] sid;
+
+//channels for J semaphores
+chan P[sid];
+chan V[sid];
+chan GO[pid];
+
+meta pid proc; 
+
+const int SA=0;
+const int SB=1;
+const int MB=2;
+const int MAB=3;
+
+//decoration variables
+const int a=0, b=1;
+int[0,1] T[PROC];
+int[0,PROC] i=0;
+</declaration>
+	<template>
+		<name>A</name>
+		<parameter>const aid p</parameter>
+		<location id="id0" x="-24" y="-144">
+			<name x="-34" y="-174">End</name>
+		</location>
+		<location id="id1" x="-24" y="-80">
+			<urgent/>
+		</location>
+		<location id="id2" x="-24" y="-24">
+			<urgent/>
+		</location>
+		<location id="id3" x="-104" y="-24">
+		</location>
+		<location id="id4" x="-200" y="-24">
+			<urgent/>
+		</location>
+		<location id="id5" x="-200" y="-80">
+		</location>
+		<location id="id6" x="-200" y="-144">
+			<name x="-216" y="-176">Start</name>
+			<urgent/>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-16" y="-128">V[MAB]!</label>
+			<label kind="assignment" x="-16" y="-112">T[i++]=a</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-17" y="-59">V[SB]!</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-88" y="-40">GO[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-176" y="-40">P[MAB]!</label>
+			<label kind="assignment" x="-176" y="-24">proc=p</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-248" y="-64">GO[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-246" y="-127">P[SA]!</label>
+			<label kind="assignment" x="-246" y="-110">proc=p</label>
+		</transition>
+	</template>
+	<template>
+		<name>B</name>
+		<parameter>const bid p</parameter>
+		<location id="id7" x="-360" y="-232">
+			<name x="-376" y="-264">End</name>
+		</location>
+		<location id="id8" x="-280" y="-232">
+			<urgent/>
+		</location>
+		<location id="id9" x="-200" y="-232">
+			<urgent/>
+		</location>
+		<location id="id10" x="-120" y="-232">
+			<urgent/>
+		</location>
+		<location id="id11" x="-40" y="-232">
+			<urgent/>
+		</location>
+		<location id="id12" x="40" y="-232">
+		</location>
+		<location id="id13" x="-296" y="-40">
+			<name x="-312" y="-72">Start</name>
+			<urgent/>
+		</location>
+		<location id="id14" x="40" y="-168">
+			<urgent/>
+		</location>
+		<location id="id15" x="-208" y="-40">
+		</location>
+		<location id="id16" x="40" y="-104">
+		</location>
+		<location id="id17" x="40" y="-40">
+			<urgent/>
+		</location>
+		<location id="id18" x="-40" y="-40">
+		</location>
+		<location id="id19" x="-120" y="-40">
+			<urgent/>
+		</location>
+		<init ref="id13"/>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-344" y="-256">V[MAB]!</label>
+			<label kind="assignment" x="-344" y="-224">T[i++]=b</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-256" y="-256">V[MB]!</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-176" y="-256">V[SA]!</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-96" y="-256">V[SA]!</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-17" y="-255">GO[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="48" y="-216">P[MAB]!</label>
+			<label kind="assignment" x="48" y="-200">proc=p</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-184" y="-56">GO[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-280" y="-56">P[MB]!</label>
+			<label kind="assignment" x="-280" y="-40">proc=p</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="40" y="-144">GO[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="48" y="-88">P[SB]!</label>
+			<label kind="assignment" x="48" y="-72">proc=p</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-24" y="-56">GO[p]?</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-104" y="-56">P[SB]!</label>
+			<label kind="assignment" x="-104" y="-40">proc=p</label>
+		</transition>
+	</template>
+	<template>
+		<name>Semaphore</name>
+		<parameter>const sid s, const int initial, const int[1,PROC] qs</parameter>
+		<declaration>pid q[qs];
+int count;
+int[0,qs-1] in, out;
+bool op; //false=dequeue, true=enqueue
+
+void initialize(){
+	count=initial;
+	in=0; out=0;
+	op=false;
+}//initialize
+
+void enqueue(const pid p){
+	//pre: !full()
+	q[in]=p;
+	in=(in+1)%qs;
+	op=true;
+}//enqueue
+
+pid dequeue(){
+	//pre: !empty
+	pid pro=q[out];
+        q[out]=0;
+	out=(out+1)%qs;
+	op=false;
+	return pro;
+}//dequeue
+
+bool empty(){
+	return !op &amp;&amp; in==out;
+}//empty
+
+bool full(){
+	return op &amp;&amp; in==out;
+}//full</declaration>
+		<location id="id20" x="-576" y="-48">
+			<name x="-624" y="-56">Error</name>
+			<committed/>
+		</location>
+		<location id="id21" x="-432" y="56">
+			<committed/>
+		</location>
+		<location id="id22" x="-544" y="-96">
+			<committed/>
+		</location>
+		<location id="id23" x="-480" y="-112">
+			<committed/>
+		</location>
+		<location id="id24" x="-480" y="-16">
+		</location>
+		<init ref="id22"/>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-608" y="-88">initial&lt;0</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-624" y="-32">count==0 &amp;&amp; full()</label>
+			<label kind="synchronisation" x="-568" y="-16">P[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-648" y="24">count==0 &amp;&amp; !full()</label>
+			<label kind="synchronisation" x="-600" y="40">P[s]?</label>
+			<label kind="assignment" x="-632" y="56">enqueue(proc)</label>
+			<nail x="-560" y="32"/>
+			<nail x="-528" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-408" y="0">GO[q[out]]!</label>
+			<label kind="assignment" x="-400" y="16">dequeue()</label>
+			<nail x="-400" y="24"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-496" y="16">!empty()</label>
+			<label kind="synchronisation" x="-488" y="32">V[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-392" y="-72">empty()</label>
+			<label kind="synchronisation" x="-384" y="-56">V[s]?</label>
+			<label kind="assignment" x="-384" y="-40">count++</label>
+			<nail x="-400" y="-64"/>
+			<nail x="-384" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-544" y="-72">initial&gt;=0</label>
+			<label kind="assignment" x="-544" y="-56">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-512" y="-104">GO[q[in]]!</label>
+			<label kind="assignment" x="-512" y="-88">q[in]=0</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="-432" y="-144">count&gt;0</label>
+			<label kind="synchronisation" x="-432" y="-128">P[s]?</label>
+			<label kind="assignment" x="-432" y="-112">count--,
+q[in]=proc</label>
+			<nail x="-432" y="-112"/>
+		</transition>
+	</template>
+	<template>
+		<name>BinarySemaphore</name>
+		<parameter>const sid s, const int[0,1] initial, const int[1,PROC] qs</parameter>
+		<declaration>pid q[qs];
+int[0,1] count;
+int[0,qs-1] in, out;
+bool op; //false=dequeue, true=enqueue
+
+void initialize(){
+	count=initial;
+	in=0; out=0;
+	op=false;
+}//initialize
+
+void enqueue(const pid p){
+	//pre: !full()
+	q[in]=p;
+	in=(in+1)%qs;
+	op=true;
+}//enqueue
+
+pid dequeue(){
+	//pre: !empty
+	pid pro=q[out];
+        q[out]=0;
+	out=(out+1)%qs;
+	op=false;
+	return pro;
+}//dequeue
+
+bool empty(){
+	return !op &amp;&amp; in==out;
+}//empty
+
+bool full(){
+	return op &amp;&amp; in==out;
+}//full</declaration>
+		<location id="id25" x="-552" y="-96">
+			<name x="-562" y="-126">Error</name>
+			<committed/>
+		</location>
+		<location id="id26" x="-440" y="64">
+			<committed/>
+		</location>
+		<location id="id27" x="-584" y="-16">
+			<committed/>
+		</location>
+		<location id="id28" x="-480" y="-112">
+			<committed/>
+		</location>
+		<location id="id29" x="-480" y="-16">
+		</location>
+		<init ref="id27"/>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-640" y="-72">count==0 &amp;&amp; full()</label>
+			<label kind="synchronisation" x="-576" y="-56">P[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id29"/>
+			<label kind="guard" x="-640" y="24">count==0 &amp;&amp; !full()</label>
+			<label kind="synchronisation" x="-608" y="40">P[s]?</label>
+			<label kind="assignment" x="-624" y="56">enqueue(proc)</label>
+			<nail x="-568" y="32"/>
+			<nail x="-536" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-408" y="8">GO[q[out]]!</label>
+			<label kind="assignment" x="-400" y="24">dequeue()</label>
+			<nail x="-408" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id26"/>
+			<label kind="guard" x="-496" y="16">!empty()</label>
+			<label kind="synchronisation" x="-496" y="32">V[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id29"/>
+			<label kind="guard" x="-392" y="-72">empty()</label>
+			<label kind="synchronisation" x="-384" y="-56">V[s]?</label>
+			<label kind="assignment" x="-384" y="-40">count=1</label>
+			<nail x="-400" y="-64"/>
+			<nail x="-384" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id29"/>
+			<label kind="assignment" x="-568" y="-32">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-520" y="-88">GO[q[in]]!</label>
+			<label kind="assignment" x="-512" y="-72">q[in]=0</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id28"/>
+			<label kind="guard" x="-432" y="-144">count==1</label>
+			<label kind="synchronisation" x="-432" y="-128">P[s]?</label>
+			<label kind="assignment" x="-432" y="-112">count=0,
+q[in]=proc</label>
+			<nail x="-432" y="-112"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+sA = Semaphore(SA,1,2);
+sB = Semaphore(SB,1,1);
+mB = BinarySemaphore(MB,1,1);
+mAB= BinarySemaphore(MAB,1,2);
+// List one or more processes to be composed into a system.
+system A,B,sA,sB,mB,mAB;</system>
+	<queries>
+		<query>
+			<formula>i==0 --&gt; i==5
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>i==4 --&gt; i==5
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>i==3 --&gt; i==4
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>i==2 --&gt; i==3
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>i==1 --&gt; i==2
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>i==0 --&gt; i==1
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; i==2 &amp;&amp; T[0]==a &amp;&amp; T[1]==a
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; i==1 &amp;&amp; T[0]==b
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] i==5 imply T[0]==a &amp;&amp; T[1]==b &amp;&amp; T[2]==a &amp;&amp; T[3]==a &amp;&amp; T[4]==b
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

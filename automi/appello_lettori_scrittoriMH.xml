@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int SCR = 2;
+const int LET = 2;
+const int PROC = SCR + LET;
+const int NONE = -1;
+
+typedef int[0,PROC-1]pid;
+typedef int[0,SCR-1]s_id;
+typedef int[SCR,PROC-1]l_id;
+
+bool scrittore_dentro = false;
+int lettori_in = 0;
+int lettori_w=0;
+int scrittori_w=0;
+bool pass=false;
+
+chan startRead[pid];
+chan endRead[pid];
+chan startWrite[pid];
+chan endWrite[pid];
+broadcast chan check;
+chan ok[pid];
+
+/*
+    Variabili monitor
+*/
+const int MONITOR = 1;
+const int MNC = 2;
+
+typedef int[0,MONITOR-1]mid;
+typedef int[0,MNC-1]cid;
+
+const int m = 0;
+const int w_l = 0;
+const int w_s = 1;
+const int[1,MNC]CPL[MONITOR] ={ 2 };
+
+chan lock[mid][pid];
+chan unlock[mid][pid];
+chan wait[cid][mid][pid];
+chan signal[cid][mid][pid];
+chan go[pid];</declaration>
+	<template>
+		<name>Lettore</name>
+		<parameter>const l_id id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id0" x="-212" y="-25">
+		</location>
+		<location id="id1" x="-51" y="-144">
+			<name x="-61" y="-178">Inside</name>
+			<label kind="invariant" x="-42" y="-136">x&lt;4</label>
+		</location>
+		<location id="id2" x="-212" y="-144">
+			<name x="-222" y="-178">Req</name>
+		</location>
+		<location id="id3" x="-374" y="-144">
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-356" y="-42">ok[id]?</label>
+			<nail x="-374" y="-25"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-42" y="-76">x&gt;2</label>
+			<label kind="synchronisation" x="-42" y="-59">endRead[id]!</label>
+			<nail x="-51" y="-25"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-194" y="-161">ok[id]?</label>
+			<label kind="assignment" x="-194" y="-144">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-356" y="-161">startRead[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>Scrittore</name>
+		<parameter>const s_id id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id4" x="-59" y="51">
+		</location>
+		<location id="id5" x="-59" y="-76">
+			<name x="-69" y="-110">Inside</name>
+			<label kind="invariant" x="-42" y="-76">x&lt;5</label>
+		</location>
+		<location id="id6" x="-238" y="-76">
+			<name x="-248" y="-110">Req</name>
+		</location>
+		<location id="id7" x="-425" y="-76">
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-407" y="34">ok[id]?</label>
+			<nail x="-425" y="51"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-51" y="-17">x&gt;2</label>
+			<label kind="synchronisation" x="-59" y="-34">endWrite[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-195" y="-93">ok[id]?</label>
+			<label kind="assignment" x="-220" y="-76">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-407" y="-93">startWrite[id]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>Gestore</name>
+		<parameter>const pid id</parameter>
+		<location id="id8" x="-1445" y="-713">
+		</location>
+		<location id="id9" x="-1521" y="-662">
+			<committed/>
+		</location>
+		<location id="id10" x="-1632" y="-662">
+			<committed/>
+		</location>
+		<location id="id11" x="-1802" y="-662">
+		</location>
+		<location id="id12" x="-1734" y="-756">
+			<committed/>
+		</location>
+		<location id="id13" x="-1640" y="-756">
+		</location>
+		<location id="id14" x="-1615" y="-824">
+		</location>
+		<location id="id15" x="-1785" y="-824">
+			<committed/>
+		</location>
+		<location id="id16" x="-1674" y="-1036">
+		</location>
+		<location id="id17" x="-1785" y="-926">
+			<committed/>
+		</location>
+		<location id="id18" x="-1674" y="-926">
+			<committed/>
+		</location>
+		<location id="id19" x="-1589" y="-926">
+		</location>
+		<location id="id20" x="-1258" y="-688">
+		</location>
+		<location id="id21" x="-1130" y="-688">
+			<committed/>
+		</location>
+		<location id="id22" x="-969" y="-688">
+			<committed/>
+		</location>
+		<location id="id23" x="-969" y="-773">
+		</location>
+		<location id="id24" x="-1088" y="-773">
+			<committed/>
+		</location>
+		<location id="id25" x="-1173" y="-773">
+		</location>
+		<location id="id26" x="-1334" y="-892">
+		</location>
+		<location id="id27" x="-1258" y="-892">
+			<committed/>
+		</location>
+		<location id="id28" x="-1190" y="-892">
+			<committed/>
+		</location>
+		<location id="id29" x="-1096" y="-892">
+		</location>
+		<location id="id30" x="-994" y="-892">
+			<committed/>
+		</location>
+		<location id="id31" x="-994" y="-968">
+			<committed/>
+		</location>
+		<location id="id32" x="-1122" y="-1104">
+		</location>
+		<location id="id33" x="-1122" y="-968">
+			<committed/>
+		</location>
+		<location id="id34" x="-1224" y="-968">
+		</location>
+		<location id="id35" x="-1496" y="-926">
+			<committed/>
+		</location>
+		<location id="id36" x="-1300" y="-773">
+			<committed/>
+		</location>
+		<location id="id37" x="-1530" y="-756">
+			<committed/>
+		</location>
+		<location id="id38" x="-1377" y="-968">
+			<committed/>
+		</location>
+		<location id="id39" x="-1377" y="-824">
+		</location>
+		<init ref="id39"/>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-1428" y="-773">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-1513" y="-688">unlock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-1614" y="-679">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-1700" y="-730">lettori_w==0 &amp;&amp;
+scrittori_w==0</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-1751" y="-679">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-1785" y="-722">lettori_w&gt;0</label>
+			<label kind="synchronisation" x="-1785" y="-705">signal[w_l][m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-1895" y="-798">lettori_w==0 &amp;&amp;
+scrittori_w&gt;0</label>
+			<label kind="synchronisation" x="-1904" y="-764">signal[w_s][m][id]!</label>
+			<nail x="-1802" y="-756"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-1707" y="-773">go[id]?</label>
+			<label kind="assignment" x="-1716" y="-756">scrittore_dentro=false</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-1622" y="-773">lock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-1581" y="-841">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-1759" y="-841">unlock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-1785" y="-866">ok[id]!</label>
+			<label kind="assignment" x="-1785" y="-875">scrittore_dentro=true</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-1785" y="-1053">go[id]?</label>
+			<label kind="assignment" x="-1776" y="-1036">scrittori_w--,
+pass=false</label>
+			<nail x="-1785" y="-1036"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-1776" y="-917">!scrittore_dentro &amp;&amp;
+lettori_in==0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id16"/>
+			<label kind="guard" x="-1666" y="-1028">scrittore_dentro ||
+lettori_in&gt;0</label>
+			<label kind="synchronisation" x="-1666" y="-994">wait[w_s][m][id]!</label>
+			<label kind="assignment" x="-1666" y="-977">scrittori_w++</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-1656" y="-943">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-1571" y="-943">lock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-1360" y="-747">go[id]?</label>
+			<nail x="-1317" y="-688"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="synchronisation" x="-1232" y="-705">unlock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-1088" y="-688">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-1062" y="-722">!pass</label>
+			<nail x="-1088" y="-713"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="-969" y="-747">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="-1054" y="-841">pass</label>
+			<label kind="synchronisation" x="-1053" y="-824">signal[w_s][m][id]!</label>
+			<nail x="-1071" y="-807"/>
+			<nail x="-994" y="-807"/>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="-1155" y="-790">go[id]?</label>
+			<label kind="assignment" x="-1155" y="-773">lettori_in--,
+pass=(lettori_in==0 &amp;&amp;
+scrittori_w&gt;0)</label>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-1282" y="-790">lock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-1360" y="-866">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="-1317" y="-883">unlock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id27"/>
+			<label kind="synchronisation" x="-1240" y="-909">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id28"/>
+			<label kind="guard" x="-1147" y="-943">lettori_w==0</label>
+			<nail x="-1028" y="-926"/>
+			<nail x="-1164" y="-926"/>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id28"/>
+			<label kind="synchronisation" x="-1163" y="-909">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id29"/>
+			<label kind="guard" x="-1079" y="-892">lettori_w&gt;0</label>
+			<label kind="synchronisation" x="-1079" y="-875">signal[w_l][m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id30"/>
+			<label kind="assignment" x="-994" y="-943">lettori_in++</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-1104" y="-1121">go[id]?</label>
+			<label kind="assignment" x="-1104" y="-1104">lettori_w--</label>
+			<nail x="-994" y="-1104"/>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id32"/>
+			<label kind="guard" x="-1249" y="-1079">scrittore_dentro || 
+pass || scrittori_w&gt;0</label>
+			<label kind="synchronisation" x="-1249" y="-1045">wait[w_l][m][id]!</label>
+			<label kind="assignment" x="-1249" y="-1028">lettori_w++</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id31"/>
+			<label kind="guard" x="-1104" y="-1002">!scrittore_dentro &amp;&amp;
+!pass &amp;&amp; scrittori_w==0</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-1206" y="-985">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-1359" y="-985">lock[m][id]!</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-1487" y="-892">startWrite[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id36"/>
+			<label kind="synchronisation" x="-1359" y="-815">endRead[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id37"/>
+			<label kind="synchronisation" x="-1504" y="-807">endWrite[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="-1445" y="-926">startRead[id]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>HMonitor</name>
+		<parameter>const mid m, const int[1,PROC] qs, const int cn, const int[1,PROC] cqs</parameter>
+		<declaration>int[NONE,PROC-1] owner;
+
+typedef struct{
+   pid q[qs];
+   int[0,qs-1] in, out;
+   bool op;
+} queue;
+
+typedef struct{
+   pid q[cqs];
+   int[0,cqs-1] in, out;
+   bool op;
+} cqueue;
+
+cqueue cq[cn]; //condition waiting queues
+queue eq; //enter queue
+queue uq; //urgent queue
+
+void initialize(){
+      int i;
+      owner=NONE;
+      for( i=0; i&lt;CPL[m]; ++i ){
+	     cq[i].in=0; cq[i].out=0; cq[i].op=false;
+      } 
+      eq.in=0; eq.out=0; eq.op=false;
+      uq.in=0; uq.out=0; uq.op=false;
+}//initialize
+
+void enq(queue &amp;q, const pid p){
+	//pre: !full()
+	q.q[q.in]=p;
+	q.in=(q.in+1)%qs;
+	q.op=true;
+}//enq
+
+pid deq(queue &amp;q){
+	//pre: !empty
+	pid pro=q.q[q.out];
+	q.q[q.out]=0;
+	q.out=(q.out+1)%qs;
+	q.op=false;
+	return pro;
+}//deq
+
+bool empty(queue q){
+	return !q.op &amp;&amp; q.in==q.out;
+}//empty
+
+bool full(queue q){
+	return q.op &amp;&amp; q.in==q.out;
+}//full
+
+void cenq(cqueue &amp;q, const pid p){
+	//pre: !full()
+	q.q[q.in]=p;
+	q.in=(q.in+1)%cqs;
+	q.op=true;
+}//enq
+
+pid cdeq(cqueue &amp;q){
+	//pre: !empty
+	pid pro=q.q[q.out];
+	q.q[q.out]=0;
+	q.out=(q.out+1)%cqs;
+	q.op=false;
+	return pro;
+}//deq
+
+bool cempty(cqueue q){
+	return !q.op &amp;&amp; q.in==q.out;
+}//empty
+
+bool cfull(cqueue q){
+	return q.op &amp;&amp; q.in==q.out;
+}//full</declaration>
+		<location id="id40" x="-184" y="-408">
+			<committed/>
+		</location>
+		<location id="id41" x="-248" y="-328">
+			<committed/>
+		</location>
+		<location id="id42" x="-512" y="-184">
+			<committed/>
+		</location>
+		<location id="id43" x="-376" y="-376">
+			<committed/>
+		</location>
+		<location id="id44" x="-632" y="-56">
+			<committed/>
+		</location>
+		<location id="id45" x="-376" y="64">
+			<name x="-416" y="72">Error</name>
+			<committed/>
+		</location>
+		<location id="id46" x="-120" y="-160">
+			<name x="-96" y="-176">Locked</name>
+		</location>
+		<location id="id47" x="-632" y="-160">
+			<name x="-664" y="-200">UnLocked</name>
+		</location>
+		<init ref="id44"/>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id43"/>
+			<label kind="synchronisation" x="-312" y="-424">go[owner]!</label>
+			<label kind="assignment" x="-320" y="-408">owner=deq(uq)</label>
+			<nail x="-344" y="-408"/>
+		</transition>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id43"/>
+			<label kind="synchronisation" x="-336" y="-376">go[owner]!</label>
+			<label kind="assignment" x="-336" y="-360">owner=deq(eq)</label>
+			<nail x="-280" y="-352"/>
+		</transition>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id47"/>
+			<label kind="synchronisation" x="-600" y="-192">go[owner]!</label>
+			<label kind="assignment" x="-600" y="-176">owner=NONE</label>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="select" x="-104" y="56">c:cid</label>
+			<label kind="guard" x="-224" y="72">!cempty(cq[c])&amp;&amp;full(uq)</label>
+			<label kind="synchronisation" x="-200" y="88">signal[c][m][owner]?</label>
+			<nail x="-72" y="-72"/>
+			<nail x="-72" y="112"/>
+			<nail x="-376" y="112"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id43"/>
+			<label kind="select" x="24" y="-176">c:cid</label>
+			<label kind="guard" x="8" y="-160">cempty(cq[c])</label>
+			<label kind="synchronisation" x="0" y="-144">signal[c][m][owner]?</label>
+			<nail x="104" y="-160"/>
+			<nail x="104" y="-456"/>
+			<nail x="-376" y="-456"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="select" x="-208" y="0">c:cid</label>
+			<label kind="guard" x="-224" y="16">cfull(cq[c])</label>
+			<label kind="synchronisation" x="-240" y="32">wait[c][m][owner]?</label>
+			<nail x="-112" y="-56"/>
+			<nail x="-240" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id43"/>
+			<label kind="select" x="24" y="-304">c:cid</label>
+			<label kind="guard" x="-8" y="-288">!empty(uq)&amp;&amp;
+!cfull(cq[c])</label>
+			<label kind="synchronisation" x="-16" y="-256">wait[c][m][owner]?</label>
+			<label kind="assignment" x="-16" y="-240">cenq(cq[c],owner),
+owner=deq(uq)</label>
+			<nail x="16" y="-208"/>
+			<nail x="16" y="-440"/>
+			<nail x="-360" y="-440"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id40"/>
+			<label kind="guard" x="-80" y="-384">!empty(uq)</label>
+			<label kind="synchronisation" x="-102" y="-365">unlock[m][owner]?</label>
+			<nail x="-24" y="-232"/>
+			<nail x="-24" y="-408"/>
+			<nail x="-168" y="-408"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id43"/>
+			<label kind="select" x="-144" y="-336">c:cid</label>
+			<label kind="guard" x="-144" y="-320">!cempty(cq[c])&amp;&amp;
+!full(uq)</label>
+			<label kind="synchronisation" x="-144" y="-288">signal[c][m][owner]?</label>
+			<label kind="assignment" x="-144" y="-272">enq(uq,owner),
+owner=cdeq(cq[c])</label>
+			<nail x="-120" y="-376"/>
+			<nail x="-352" y="-376"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="synchronisation" x="-204" y="-59">lock[m][owner]?</label>
+			<nail x="-144" y="-64"/>
+			<nail x="-256" y="32"/>
+			<nail x="-352" y="56"/>
+		</transition>
+		<transition>
+			<source ref="id43"/>
+			<target ref="id46"/>
+			<label kind="synchronisation" x="-224" y="-232">go[owner]!</label>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id43"/>
+			<label kind="select" x="-504" y="-336">id:pid</label>
+			<label kind="synchronisation" x="-504" y="-320">lock[m][id]?</label>
+			<label kind="assignment" x="-504" y="-304">owner=id</label>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id47"/>
+			<label kind="assignment" x="-664" y="-104">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="select" x="-288" y="-40">c:cid,id:pid</label>
+			<label kind="guard" x="-296" y="-24">id!=owner</label>
+			<label kind="synchronisation" x="-312" y="-8">signal[c][m][id]?</label>
+			<nail x="-168" y="-88"/>
+			<nail x="-304" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="select" x="-360" y="-112">id:pid</label>
+			<label kind="guard" x="-360" y="-96">id!=owner</label>
+			<label kind="synchronisation" x="-360" y="-80">unlock[m][id]?</label>
+			<nail x="-240" y="-128"/>
+			<nail x="-352" y="-32"/>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id45"/>
+			<label kind="select" x="-584" y="-72">c:cid,id:pid</label>
+			<label kind="synchronisation" x="-592" y="-56">signal[c][m][id]?</label>
+			<nail x="-592" y="-80"/>
+			<nail x="-448" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id42"/>
+			<label kind="guard" x="-448" y="-224">empty(uq)&amp;&amp;empty(eq)</label>
+			<label kind="synchronisation" x="-424" y="-208">unlock[m][owner]?</label>
+			<nail x="-248" y="-184"/>
+			<nail x="-496" y="-184"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id47"/>
+			<label kind="select" x="-416" y="-176">c:cid</label>
+			<label kind="guard" x="-544" y="-160">empty(uq)&amp;&amp;empty(eq)&amp;&amp;!cfull(cq[c])</label>
+			<label kind="synchronisation" x="-304" y="-160">wait[c][m][owner]?</label>
+			<label kind="assignment" x="-472" y="-136">cenq(cq[c],owner),owner=NONE</label>
+			<nail x="-248" y="-136"/>
+			<nail x="-512" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="select" x="-256" y="-128">id:pid</label>
+			<label kind="guard" x="-256" y="-112">id!=owner &amp;&amp; 
+full(eq)</label>
+			<label kind="synchronisation" x="-256" y="-80">lock[m][id]?</label>
+			<nail x="-208" y="-120"/>
+			<nail x="-344" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id43"/>
+			<label kind="select" x="-392" y="-344">c:cid</label>
+			<label kind="guard" x="-392" y="-328">empty(uq)&amp;&amp;
+!empty(eq)&amp;&amp; 
+!cfull(cq[c])</label>
+			<label kind="synchronisation" x="-392" y="-280">wait[c][m][owner]?</label>
+			<label kind="assignment" x="-392" y="-264">cenq(cq[c],owner),
+owner=deq(eq)</label>
+			<nail x="-216" y="-184"/>
+			<nail x="-344" y="-296"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id46"/>
+			<label kind="select" x="0" y="-112">id:pid</label>
+			<label kind="guard" x="0" y="-96">id!=owner &amp;&amp; 
+!full(eq)</label>
+			<label kind="synchronisation" x="0" y="-64">lock[m][id]?</label>
+			<label kind="assignment" x="0" y="-48">enq(eq,id)</label>
+			<nail x="0" y="-112"/>
+			<nail x="-32" y="-72"/>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id45"/>
+			<label kind="select" x="-496" y="-104">id:pid</label>
+			<label kind="synchronisation" x="-496" y="-88">unlock[m][id]?</label>
+			<nail x="-536" y="-128"/>
+			<nail x="-400" y="-32"/>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id45"/>
+			<label kind="select" x="-480" y="-32">c:cid,id:pid</label>
+			<label kind="synchronisation" x="-480" y="-16">wait[c][m][id]?</label>
+			<nail x="-552" y="-96"/>
+			<nail x="-416" y="8"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id41"/>
+			<label kind="guard" x="-248" y="-320">empty(uq)&amp;&amp;
+!empty(eq)</label>
+			<label kind="synchronisation" x="-263" y="-289">unlock[m][owner]?</label>
+			<nail x="-152" y="-248"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+mon = HMonitor(m,PROC-1,2,2);
+// List one or more processes to be composed into a system.
+system Lettore,Scrittore,Gestore,mon;
+    </system>
+	<queries>
+		<query>
+			<formula>Scrittore(0).Req --&gt; Scrittore(0).Inside
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt;deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

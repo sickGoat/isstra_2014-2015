@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+//definizione buffer
+const int buffer_length=4;
+int[0,buffer_length-1] in,out;
+int[0,buffer_length] size;
+
+//definizione processi
+const int PROD = 2;
+const int CONS = 1;
+const int PROC = PROD + CONS;
+//id di tutti i processi
+typedef int[0,PROC-1] p_id;
+typedef int[0,PROD-1] pr_id;
+typedef int[PROD,PROC-1] co_id;
+//dichiarazione semafori
+const int SEMAFORI = 3;
+typedef int[0,SEMAFORI-1] s_id;
+const int MUTEX = 0;
+const int PRODUCI = 1;
+const int CONSUMA = 2;
+//canali per i semafori
+chan p[s_id];
+chan v[s_id];
+chan go[p_id];
+
+meta p_id proc;
+
+
+</declaration>
+	<template>
+		<name>Produttore</name>
+		<parameter>const pr_id id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id0" x="-697" y="-68">
+			<committed/>
+		</location>
+		<location id="id1" x="-459" y="-68">
+			<committed/>
+		</location>
+		<location id="id2" x="-144" y="-68">
+			<name x="-127" y="-76">C_S</name>
+			<label kind="invariant" x="-161" y="-51">x&lt;=4</label>
+		</location>
+		<location id="id3" x="-144" y="-204">
+		</location>
+		<location id="id4" x="-306" y="-204">
+			<committed/>
+		</location>
+		<location id="id5" x="-484" y="-204">
+			<name x="-501" y="-238">Req</name>
+		</location>
+		<location id="id6" x="-697" y="-204">
+			<name x="-707" y="-238">Start</name>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-790" y="-153">v[CONSUMA]!</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-595" y="-85">v[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-348" y="-68">size++,
+in=(in+1)%buffer_length</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-136" y="-153">go[id]?</label>
+			<label kind="assignment" x="-136" y="-136">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-280" y="-221">p[MUTEX]!</label>
+			<label kind="assignment" x="-280" y="-204">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-425" y="-221">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-637" y="-221">p[PRODUCI]!</label>
+			<label kind="assignment" x="-637" y="-204">proc=id</label>
+		</transition>
+	</template>
+	<template>
+		<name>Consumatore</name>
+		<parameter>const co_id id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id7" x="-416" y="-8">
+			<committed/>
+		</location>
+		<location id="id8" x="-161" y="-8">
+			<committed/>
+		</location>
+		<location id="id9" x="119" y="-8">
+			<name x="136" y="-17">C_S</name>
+			<label kind="invariant" x="109" y="9">x&lt;=4</label>
+		</location>
+		<location id="id10" x="119" y="-161">
+		</location>
+		<location id="id11" x="-51" y="-161">
+			<committed/>
+		</location>
+		<location id="id12" x="-229" y="-161">
+			<name x="-239" y="-195">Req</name>
+		</location>
+		<location id="id13" x="-416" y="-161">
+			<name x="-426" y="-195">Start</name>
+		</location>
+		<init ref="id13"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-501" y="-93">v[PRODUCI]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-306" y="-25">v[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="assignment" x="-110" y="0">out=(out+1)%buffer_length,
+size--</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="119" y="-101">go[id]?</label>
+			<label kind="assignment" x="119" y="-84">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-17" y="-178">p[MUTEX]!</label>
+			<label kind="assignment" x="-17" y="-161">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-178" y="-178">go[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-382" y="-178">p[CONSUMA]!</label>
+			<label kind="assignment" x="-382" y="-161">proc=id</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">SemaforoBinario</name>
+		<parameter>const s_id id,const int[0,1] initial,const int[1,PROC] qs</parameter>
+		<declaration>// Place local declarations here.
+p_id q[qs];
+int[0,1] count;
+int[0,qs-1] in,out;
+bool op;
+
+void initialize(){
+    count = initial;
+    in = 0;
+    out = 0;
+    op = false;
+}
+
+void enqueue(const int pid){
+    q[in] = pid;
+    in = (in+1)%qs;
+    op = true;
+}
+
+p_id dequeue(){
+    p_id pid = q[out];
+    out = (out+1)%qs;
+    op = false;
+    
+    return pid;
+}
+
+bool empty(){ return !op &amp;&amp; in==out; }
+
+bool full(){ return op &amp;&amp; in==out; }</declaration>
+		<location id="id14" x="-1164" y="-1105">
+			<name x="-1174" y="-1139">Error</name>
+			<committed/>
+		</location>
+		<location id="id15" x="-1054" y="-841">
+			<committed/>
+		</location>
+		<location id="id16" x="-960" y="-960">
+			<committed/>
+		</location>
+		<location id="id17" x="-1130" y="-960">
+		</location>
+		<location id="id18" x="-1317" y="-977">
+			<name x="-1343" y="-1011">Start</name>
+			<committed/>
+		</location>
+		<init ref="id18"/>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-1147" y="-1088">full()</label>
+			<label kind="synchronisation" x="-1147" y="-1071">p[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-1317" y="-858">count==0 &amp;&amp; !full()</label>
+			<label kind="synchronisation" x="-1317" y="-841">p[id]?</label>
+			<label kind="assignment" x="-1317" y="-824">enqueue(proc)</label>
+			<nail x="-1266" y="-918"/>
+			<nail x="-1224" y="-858"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-1139" y="-833">go[q[out]]!</label>
+			<label kind="assignment" x="-1139" y="-816">dequeue()</label>
+			<nail x="-1122" y="-841"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-1071" y="-909">!empty()</label>
+			<label kind="synchronisation" x="-1071" y="-892">v[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-1283" y="-1088">empty()</label>
+			<label kind="synchronisation" x="-1283" y="-1071">v[id]?</label>
+			<label kind="assignment" x="-1283" y="-1054">count=1</label>
+			<nail x="-1249" y="-1020"/>
+			<nail x="-1181" y="-1054"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-1071" y="-1054">go[q[in]]!</label>
+			<label kind="assignment" x="-1071" y="-1037">q[in]=0</label>
+			<nail x="-960" y="-1037"/>
+			<nail x="-1130" y="-1037"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="guard" x="-1071" y="-994">count==1</label>
+			<label kind="synchronisation" x="-1071" y="-977">p[id]?</label>
+			<label kind="assignment" x="-1071" y="-960">q[in]=proc,
+count=0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="assignment" x="-1300" y="-969">initialize()</label>
+		</transition>
+	</template>
+	<template>
+		<name>SemaforoContatore</name>
+		<parameter>const s_id id, const int initial,const int[1,PROC] qs</parameter>
+		<declaration>// Place local declarations here.
+p_id q[qs];
+int count;
+int[0,qs-1] in,out;
+bool op;
+
+void initialize(){
+    count = initial;
+    in = 0;
+    out = 0;
+    op = false;
+}
+
+void enqueue(const int pid){
+    q[in] = pid;
+    in = (in+1)%qs;
+    op = true;
+}
+
+p_id dequeue(){
+    p_id pid = q[out];
+    out = (out+1)%qs;
+    op = false;
+    
+    return pid;
+}
+
+bool empty(){ return !op &amp;&amp; in==out; }
+
+bool full(){ return op &amp;&amp; in==out; }</declaration>
+		<location id="id19" x="-1198" y="-331">
+			<committed/>
+		</location>
+		<location id="id20" x="-901" y="-442">
+			<committed/>
+		</location>
+		<location id="id21" x="-1079" y="-442">
+		</location>
+		<location id="id22" x="-1283" y="-527">
+			<name x="-1293" y="-561">Error</name>
+			<committed/>
+		</location>
+		<location id="id23" x="-1283" y="-442">
+			<name x="-1334" y="-459">Start</name>
+			<committed/>
+		</location>
+		<init ref="id23"/>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-1241" y="-561">full() &amp;&amp; 
+count==0</label>
+			<label kind="synchronisation" x="-1241" y="-527">p[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-1173" y="-314">go[q[out]]!</label>
+			<label kind="assignment" x="-1173" y="-297">dequeue()</label>
+			<nail x="-1139" y="-314"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-1224" y="-391">!empty()</label>
+			<label kind="synchronisation" x="-1215" y="-374">v[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-1071" y="-314">empty()</label>
+			<label kind="synchronisation" x="-1071" y="-297">v[id]?</label>
+			<label kind="assignment" x="-1071" y="-280">count++</label>
+			<nail x="-1079" y="-314"/>
+			<nail x="-1011" y="-314"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-1122" y="-603">count==0</label>
+			<label kind="synchronisation" x="-1122" y="-586">p[id]?</label>
+			<label kind="assignment" x="-1122" y="-569">enqueue(proc)</label>
+			<nail x="-1062" y="-552"/>
+			<nail x="-1139" y="-552"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-1036" y="-493">go[q[in]]!</label>
+			<label kind="assignment" x="-1036" y="-476">q[in]=0</label>
+			<nail x="-926" y="-476"/>
+			<nail x="-1054" y="-476"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-1037" y="-442">count&gt;0</label>
+			<label kind="synchronisation" x="-1037" y="-425">p[id]?</label>
+			<label kind="assignment" x="-1037" y="-408">q[in]=proc,
+count--</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-1241" y="-459">initial&gt;=0</label>
+			<label kind="assignment" x="-1241" y="-442">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-1343" y="-493">initial&lt;0</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+mutex = SemaforoBinario(MUTEX,1,PROC);
+produci = SemaforoContatore(PRODUCI,buffer_length,PROD);
+consuma = SemaforoContatore(CONSUMA,0,CONS);
+
+system Produttore,Consumatore,mutex,produci,consuma;
+    </system>
+	<queries>
+		<query>
+			<formula>A[] forall(i:pr_id) forall(j:co_id) Produttore(i).C_S imply !Consumatore(j).C_S
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:pr_id) forall(j:pr_id) Produttore(i).C_S &amp;&amp; Produttore(j).C_S imply i==j
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

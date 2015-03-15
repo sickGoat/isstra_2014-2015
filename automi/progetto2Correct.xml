@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>//Insert declarations of global clocks, variables, constants and channels.
+broadcast chan end_fire;
+
+typedef struct{
+  int index;
+  int weight;
+} Info;
+
+const int T = 16;
+const int P = 12;
+const int PRE = 2;
+const int POST = 2;
+const int P0 = 0;
+const int P1 = 1;
+const int P2 = 2;
+const int P3 = 3;
+const int P4 = 4;
+const int P5 = 5;
+const int P6 = 6;
+const int P7 = 7;
+const int P8 = 8;
+const int P9 = 9;
+const int P10 = 10;
+const int P11 = 11;
+
+const Info B[T][PRE] = {
+{{3,1},{-1,0}},
+{{0,1},{-1,0}},
+{{0,1},{9,1}},
+{{1,1},{-1,0}},
+{{2,1},{-1,0}},
+{{2,1},{11,1}},
+{{8,1},{7,1}},
+{{4,1},{-1,0}},
+{{8,1},{5,1}},
+{{5,1},{10,1}},
+{{6,1},{-1,0}},
+{{10,1},{7,1}},
+{{8,1},{-1,0}},
+{{9,1},{-1,0}},
+{{10,1},{-1,0}},
+{{11,1},{-1,0}}
+};
+
+const Info F[T][POST]= {
+{{0,1},{8,1}},
+{{0,1},{8,1}},
+{{1,1},{-1,0}},
+{{2,1},{10,1}},
+{{2,1},{10,1}},
+{{3,1},{-1,0}},
+{{4,1},{-1,0}},
+{{5,1},{9,1}},
+{{4,1},{-1,0}},
+{{6,1},{-1,0}},
+{{7,1},{11,1}},
+{{6,1},{-1,0}},
+{{-1,0},{-1,0}},
+{{-1,0},{-1,0}},
+{{-1,0},{-1,0}},
+{{-1,0},{-1,0}}
+};
+
+const int I[T][2] = {
+{0,-1},
+{5,6},
+{0,1},
+{0,-1},
+{5,6},
+{0,1},
+{0,1},
+{0,2},
+{0,1},
+{0,1},
+{0,2},
+{0,1},
+{0,1},
+{0,1},
+{0,1},
+{0,1}
+};
+
+int[0,1] M[P]={ 0,0,0,1,0,0,0,1,0,0,0,0 };
+
+const int INF = -1;
+typedef int[0,T-1] tid;
+
+clock x[T];
+/* 
+    Variabili di decorazione per effettuare le query
+*/
+clock receivePkt;
+clock sendPkt;
+bool ack_perso=false;
+
+bool enabled( const tid ID ){
+  int p;
+  for(p=0;p&lt;PRE &amp;&amp; B[ID][p].index!=-1 ;++p)
+    if (B[ID][p].weight&gt;0 &amp;&amp; M[B[ID][p].index]&lt;B[ID][p].weight ||
+        B[ID][p].weight==0 &amp;&amp; M[B[ID][p].index]&gt;0)
+      return false;
+  return true;
+}//enabled
+
+void withdraw( const tid ID ){
+  int p;
+  for(p=0;p&lt;PRE &amp;&amp; B[ID][p].index!=-1;++p){
+    M[B[ID][p].index]-=B[ID][p].weight;
+  }
+}//withdraw
+
+void deposit( const tid ID ){
+  int p;
+  for(p=0;p&lt;POST &amp;&amp; F[ID][p].index!=-1;++p){
+    M[F[ID][p].index]+=F[ID][p].weight;
+  }
+  if( ID == 6 || ID == 9 ){ receivePkt = 0; ack_perso = false; }
+  if( ID == 13 || ID == 15 ){ ack_perso = true; }
+  if( ID == 0 || ID == 3 || ID==1  || ID == 4 ){ sendPkt=0; }
+
+}//deposit
+
+
+</declaration>
+	<template>
+		<name>Transition</name>
+		<parameter>const tid ID</parameter>
+		<location id="id0" x="0" y="-104">
+			<name x="-48" y="-136">Firing</name>
+			<label kind="invariant" x="0" y="-152">I[ID][1]==INF ||
+x[ID]&lt;=I[ID][1]</label>
+		</location>
+		<location id="id1" x="176" y="64">
+			<name x="176" y="80">Withdraw</name>
+			<committed/>
+		</location>
+		<location id="id2" x="0" y="64">
+			<name x="-24" y="72">Deposit</name>
+			<committed/>
+		</location>
+		<location id="id3" x="-176" y="64">
+			<name x="-232" y="72">Disabled</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-152" y="-48">enabled(ID)</label>
+			<label kind="synchronisation" x="-152" y="-32">end_fire?</label>
+			<label kind="assignment" x="-136" y="-16">x[ID]=0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-168" y="-128">!enabled(ID)</label>
+			<label kind="synchronisation" x="-168" y="-104">end_fire?</label>
+			<nail x="-176" y="-104"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="0" y="-48">enabled(ID)</label>
+			<label kind="synchronisation" x="0" y="-32">end_fire!</label>
+			<label kind="assignment" x="0" y="-16">x[ID]=0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="104" y="-128">x[ID]&gt;=I[ID][0]</label>
+			<label kind="assignment" x="88" y="-104">withdraw(ID)</label>
+			<nail x="176" y="-104"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="42" y="42">end_fire!</label>
+			<label kind="assignment" x="42" y="68">deposit(ID)</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-120" y="40">!enabled(ID)</label>
+			<label kind="synchronisation" x="-120" y="64">end_fire!</label>
+		</transition>
+	</template>
+	<template>
+		<name>Starter</name>
+		<location id="id4" x="-56" y="-8">
+		</location>
+		<location id="id5" x="-184" y="-8">
+			<name x="-232" y="-24">Start</name>
+			<committed/>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-152" y="-32">end_fire!</label>
+		</transition>
+	</template>
+	<system>//Edit system definition.
+system Starter,Transition;
+</system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt; ( !ack_perso &amp;&amp; ( Transition(2).Withdraw || Transition(5).Withdraw ) ) &amp;&amp; receivePkt &gt; 3
+			</formula>
+			<comment>il tempo massimo di ricezione di un ack da parte del sender, supposto che l’ack non si perda
+			</comment>
+		</query>
+		<query>
+			<formula>A[] ( !ack_perso &amp;&amp; ( Transition(2).Withdraw || Transition(5).Withdraw ) ) imply  receivePkt &lt;= 3 
+			</formula>
+			<comment>il tempo massimo di ricezione di un ack da parte del sender, supposto che l’ack non si perda
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (Transition(1).Withdraw &amp;&amp;  ( sendPkt &gt; 6 || sendPkt &lt; 5 ) || Transition(4).Withdraw &amp;&amp;  ( sendPkt &gt; 6 || sendPkt &lt; 5 ))
+			</formula>
+			<comment>che trascorse 5 o 6 unità di tempo (timeout) senza aver ricevuto l’ack, il sender re-invia effettivamente il
+messaggio.
+			</comment>
+		</query>
+		<query>
+			<formula>(Transition(12).Withdraw || Transition(15).Withdraw || Transition(13).Withdraw || Transition(14).Withdraw  ) --&gt; ((Transition(1).Withdraw &amp;&amp; sendPkt&gt;=5 &amp;&amp; sendPkt &lt;= 6 ) || (Transition(4).Withdraw &amp;&amp; sendPkt &gt;=5 &amp;&amp; sendPkt &lt;= 6 ))
+			</formula>
+			<comment>che trascorse 5 o 6 unità di tempo (timeout) senza aver ricevuto l’ack, il sender re-invia effettivamente il
+messaggio.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] (M[3]==1 imply M[7]==1) &amp;&amp; (M[1]==1 imply M[5]==1)
+			</formula>
+			<comment>che mentre il sender è impegnato nella sezione in cui gestisce un messaggio con header 0 (o 1) anche il
+receiver è ingaggiato nella sezione omonima 0 (o 1)
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; ((Transition(12).Firing &amp;&amp; Transition(13).Firing)||(Transition(14).Firing &amp;&amp; Transition(15).Firing))
+			</formula>
+			<comment>che di momento in momento sul canale può essere presente o un messaggio normale o un ack
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (M[8]==1 &amp;&amp; M[9]==1) || (M[10]==1 &amp;&amp; M[11]==1)
+			</formula>
+			<comment>che di momento in momento sul canale può essere presente o un messaggio normale o un ack
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

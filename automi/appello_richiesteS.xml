@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+// Place global declarations here.
+const int PROC = 5;
+const int RIS = 3;
+const int NONE = -1;
+const int TIPI_RICHIESTE = 3;
+const int NO_RES = -1;
+const int NO_REQ = 0;
+
+typedef int[0,PROC-1]pid;
+typedef int[0,RIS-1]rid;
+typedef int[0,TIPI_RICHIESTE]trid;
+
+const int RS = 1;
+const int RC = 2;
+const int RG = 3;
+
+typedef struct{
+    int ris;
+    trid tipo;
+}richiesta;
+
+richiesta richieste[PROC];
+bool risorse[RIS] = { false,false,false}; //false sta per disponibile
+int allocazioni[pid] = { NO_RES,NO_RES,NO_RES,NO_RES,NO_RES };
+
+
+meta rid ris;
+
+chan requestS[pid][rid];
+chan requestG[pid];
+chan requestC[pid][rid];
+chan release[pid][rid];
+chan ok[pid];
+
+meta rid res;
+meta pid proc;
+/*
+    variabili Semafori
+*/
+const int SEMAFORI = PROC+1;
+typedef int[0,SEMAFORI-1] sid;
+const int MUTEX = PROC;
+
+
+chan P[sid];
+chan V[sid];
+chan GO[pid];
+
+
+int getResource(const pid id,const trid tr){
+    int i;
+    int res = NO_RES;
+    rid res_r;
+    if( tr == RS ){
+        res_r = richieste[id].ris;
+        if( !risorse[res_r] ){ return res_r; }
+        return res;
+    }
+    if( tr == RG ){       
+        for( i = 0 ; i &lt; RIS ; i++ ){
+            if( !risorse[i]){ return i;}
+        }
+        return res;
+    }
+    if( tr == RC ){
+        res_r = richieste[id].ris;
+        if( !risorse[res_r]){ return res_r; }
+        
+        for( i = 0 ; i &lt; RIS ; i++ ){
+            if( !risorse[i]){ return i; }
+        }
+        return res;
+    }
+    return res;
+}
+
+void salvaRichiesta(const pid id,const rid res,const trid tr){
+    richieste[id].ris = res;
+    richieste[id].tipo = tr;
+}
+
+bool prioritario(const pid id,const trid tr,const rid res){
+    int i;
+    if( tr == RS){
+        for( i = 0 ; i &lt; id ; i++ ){   
+        if( richieste[i].ris == res &amp;&amp; richieste[i].tipo == RS ){ return false;}
+        }
+    }
+    else if( tr == RG ){
+        for( i = 0 ; i &lt; id ; i++ ){
+        if( richieste[id].ris == res &amp;&amp; (richieste[id].tipo == RG || richieste[id].tipo == RS)){
+             return false;
+             }
+           }
+        }
+     else{
+        for( i = 0 ; i &lt; id ; i++ ){
+        if( richieste[id].ris == res &amp;&amp; ( richieste[id].tipo == RS || richieste[id].tipo == RC )){
+             return false;
+             }
+        }      
+      }         
+    return true;
+}
+
+int svegliaProssimo(const pid id){
+    int next = -1;
+    int i;
+    rid res_posseduta = allocazioni[id];
+    for( i = 0 ; i &lt; PROC ; i++ ){
+        if( richieste[i].ris == res_posseduta &amp;&amp; id!=i ){
+            if( next == -1 ){ next = i; }
+            else if( richieste[next].tipo &gt; richieste[i].tipo){ next=i;}
+        }
+    }
+    return next;
+}</declaration>
+	<template>
+		<name>BinarySemaphore</name>
+		<parameter>const sid s, const int[0,1] initial, const int[1,PROC] qs</parameter>
+		<declaration>pid q[qs];
+int[0,1] count;
+int[0,qs-1] in, out;
+bool op; //false=dequeue, true=enqueue
+
+void initialize(){
+	count=initial;
+	in=0; out=0;
+	op=false;
+}//initialize
+
+void enqueue(){
+	//pre: !full()
+	q[in]=proc;
+	in=(in+1)%qs;
+	op=true;
+}//enqueue
+
+pid dequeue(){
+	//pre: !empty
+	pid pro=q[out];
+	q[out]=0;
+	out=(out+1)%qs;
+	op=false;
+	return pro;
+}//dequeue
+
+bool empty(){
+	return !op &amp;&amp; in==out;
+}//empty
+
+bool full(){
+	return op &amp;&amp; in==out;
+}//full</declaration>
+		<location id="id0" x="-552" y="-96">
+			<name x="-562" y="-126">Error</name>
+			<committed/>
+		</location>
+		<location id="id1" x="-440" y="64">
+			<committed/>
+		</location>
+		<location id="id2" x="-584" y="-16">
+			<committed/>
+		</location>
+		<location id="id3" x="-480" y="-112">
+			<committed/>
+		</location>
+		<location id="id4" x="-480" y="-16">
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-640" y="-72">count==0 &amp;&amp; full()</label>
+			<label kind="synchronisation" x="-544" y="-56">P[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-640" y="24">count==0 &amp;&amp; !full()</label>
+			<label kind="synchronisation" x="-584" y="40">P[s]?</label>
+			<label kind="assignment" x="-608" y="56">enqueue()</label>
+			<nail x="-568" y="32"/>
+			<nail x="-536" y="64"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-408" y="8">GO[q[out]]!</label>
+			<label kind="assignment" x="-400" y="24">dequeue()</label>
+			<nail x="-408" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-496" y="8">!empty()</label>
+			<label kind="synchronisation" x="-488" y="24">V[s]?</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-392" y="-72">empty()</label>
+			<label kind="synchronisation" x="-384" y="-56">V[s]?</label>
+			<label kind="assignment" x="-384" y="-40">count=1</label>
+			<nail x="-400" y="-64"/>
+			<nail x="-384" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="-568" y="-32">initialize()</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-520" y="-88">GO[q[in]]!</label>
+			<label kind="assignment" x="-512" y="-72">q[in]=0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-432" y="-144">count==1</label>
+			<label kind="synchronisation" x="-432" y="-128">P[s]?</label>
+			<label kind="assignment" x="-432" y="-112">count=0,
+q[in]=proc</label>
+			<nail x="-432" y="-112"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Gestore</name>
+		<parameter>const pid id</parameter>
+		<declaration>// Place local declarations here.
+int ris;</declaration>
+		<location id="id5" x="-13243" y="-13056">
+			<committed/>
+		</location>
+		<location id="id6" x="-12962" y="-13056">
+			<committed/>
+		</location>
+		<location id="id7" x="-12869" y="-13056">
+		</location>
+		<location id="id8" x="-12903" y="-12792">
+			<committed/>
+		</location>
+		<location id="id9" x="-13039" y="-12792">
+			<committed/>
+		</location>
+		<location id="id10" x="-13039" y="-12597">
+		</location>
+		<location id="id11" x="-12928" y="-12597">
+			<committed/>
+		</location>
+		<location id="id12" x="-13039" y="-12699">
+			<committed/>
+		</location>
+		<location id="id13" x="-12928" y="-12699">
+			<committed/>
+		</location>
+		<location id="id14" x="-12809" y="-12699">
+		</location>
+		<location id="id15" x="-12452" y="-12741">
+			<committed/>
+		</location>
+		<location id="id16" x="-12180" y="-12741">
+			<committed/>
+		</location>
+		<location id="id17" x="-12180" y="-12928">
+		</location>
+		<location id="id18" x="-12291" y="-12928">
+			<committed/>
+		</location>
+		<location id="id19" x="-12180" y="-12843">
+			<committed/>
+		</location>
+		<location id="id20" x="-12291" y="-12843">
+			<committed/>
+		</location>
+		<location id="id21" x="-12469" y="-12843">
+		</location>
+		<location id="id22" x="-12104" y="-12971">
+			<urgent/>
+		</location>
+		<location id="id23" x="-12248" y="-13175">
+		</location>
+		<location id="id24" x="-12359" y="-13175">
+			<committed/>
+		</location>
+		<location id="id25" x="-12104" y="-13064">
+			<committed/>
+		</location>
+		<location id="id26" x="-12359" y="-13064">
+			<committed/>
+		</location>
+		<location id="id27" x="-12478" y="-13064">
+		</location>
+		<location id="id28" x="-12733" y="-13055">
+			<committed/>
+		</location>
+		<location id="id29" x="-12750" y="-12775">
+			<committed/>
+		</location>
+		<location id="id30" x="-12589" y="-12843">
+			<committed/>
+		</location>
+		<location id="id31" x="-12486" y="-12970">
+			<committed/>
+		</location>
+		<location id="id32" x="-12648" y="-13064">
+			<committed/>
+		</location>
+		<location id="id33" x="-12648" y="-12928">
+		</location>
+		<init ref="id33"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-13225" y="-13158">svegliaProssimo(id)!=-1</label>
+			<label kind="synchronisation" x="-13225" y="-13141">V[svegliaProssimo(id)]!</label>
+			<label kind="assignment" x="-13225" y="-13124">risorse[allocazioni[id]]=false</label>
+			<nail x="-12962" y="-13124"/>
+			<nail x="-13243" y="-13124"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-13225" y="-12962">ok[id]!</label>
+			<nail x="-13243" y="-12962"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-13217" y="-13090">svegliaProssimo(id)==-1</label>
+			<label kind="synchronisation" x="-13217" y="-13073">V[MUTEX]!</label>
+			<label kind="assignment" x="-13217" y="-13056">risorse[allocazioni[id]]=false</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-12936" y="-13073">GO[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-12834" y="-13072">P[MUTEX]!</label>
+			<label kind="assignment" x="-12834" y="-13055">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-12852" y="-12852">ok[id]!</label>
+			<label kind="assignment" x="-12852" y="-12835">res=ris</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-13021" y="-12809">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id9"/>
+			<label kind="assignment" x="-13149" y="-12767">risorse[richieste[id].ris]=true,
+richieste[id].tipo=NO_REQ,
+allocazioni[id]=ris,
+richieste[id].ris=NO_RES</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-13030" y="-12665">GO[id]?</label>
+			<label kind="assignment" x="-13115" y="-12648">ris=richieste[id].ris</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-13021" y="-12614">P[id]!</label>
+			<label kind="assignment" x="-13021" y="-12597">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-12928" y="-12673">ris==NO_RES || !prioritario(id,RG,ris)</label>
+			<label kind="synchronisation" x="-12928" y="-12656">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-13021" y="-12733">ris!=NO_RES &amp;&amp; prioritario(id,RG,ris)</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-12903" y="-12716">GO[id]?</label>
+			<label kind="assignment" x="-12910" y="-12699">ris=getResource(id,RS)</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="-12779" y="-12754">P[MUTEX]!</label>
+			<label kind="assignment" x="-12779" y="-12737">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-12596" y="-12775">ok[id]!</label>
+			<label kind="assignment" x="-12596" y="-12758">res=ris</label>
+			<nail x="-12614" y="-12775"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-12393" y="-12758">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id16"/>
+			<label kind="assignment" x="-12172" y="-12818">risorse[richieste[id].ris]=true,
+richieste[id].tipo=NO_REQ,
+richieste[id].ris=NO_RES,
+allocazioni[id]=ris</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-12172" y="-12903">GO[id]?</label>
+			<label kind="assignment" x="-12180" y="-12885">ris=richieste[id].ris</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-12273" y="-12945">P[id]!</label>
+			<label kind="assignment" x="-12273" y="-12928">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id18"/>
+			<label kind="guard" x="-12435" y="-12911">ris==NO_RES || !prioritario(id,RS,ris)</label>
+			<label kind="synchronisation" x="-12325" y="-12894">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-12240" y="-12860">ris!=NO_RES &amp;&amp; prioritario(id,RS,ris)</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="synchronisation" x="-12444" y="-12860">GO[id]?</label>
+			<label kind="assignment" x="-12452" y="-12835">ris=getResource(id,RC)</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="-12571" y="-12860">P[MUTEX]!</label>
+			<label kind="assignment" x="-12571" y="-12843">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-12468" y="-12987">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id22"/>
+			<label kind="assignment" x="-12095" y="-13039">risorse[richieste[id].ris]=true,
+richieste[id].tipo=NO_REQ,
+richieste[id].ris=NO_RES,
+allocazioni[id]=ris</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-12230" y="-13192">GO[id]?</label>
+			<label kind="assignment" x="-12231" y="-13175">ris=richieste[id].ris</label>
+			<nail x="-12104" y="-13175"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="-12341" y="-13192">P[id]!</label>
+			<label kind="assignment" x="-12341" y="-13175">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-12359" y="-13153">ris==NO_RES || !prioritario(id,RS,ris)</label>
+			<label kind="synchronisation" x="-12359" y="-13136">V[MUTEX]!</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-12291" y="-13098">ris!=NO_RES &amp;&amp; 
+prioritario(id,RS,ris)</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="-12460" y="-13081">GO[id]?</label>
+			<label kind="assignment" x="-12469" y="-13064">ris =
+getResource(id,RS)</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id27"/>
+			<label kind="synchronisation" x="-12614" y="-13081">P[MUTEX]!</label>
+			<label kind="assignment" x="-12614" y="-13064">proc=id</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id28"/>
+			<label kind="select" x="-12758" y="-13004">r:rid</label>
+			<label kind="synchronisation" x="-12758" y="-12987">release[id][r]?</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-12741" y="-12843">requestG[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id30"/>
+			<label kind="select" x="-12622" y="-12920">r:rid</label>
+			<label kind="synchronisation" x="-12622" y="-12903">requestC[id][r]?</label>
+			<label kind="assignment" x="-12622" y="-12886">salvaRichiesta(id,r,RC)</label>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-12571" y="-12945">ok[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id32"/>
+			<label kind="select" x="-12648" y="-13038">r:rid</label>
+			<label kind="synchronisation" x="-12648" y="-13021">requestS[id][r]?</label>
+			<label kind="assignment" x="-12648" y="-13004">salvaRichiesta(id,r,RS)</label>
+		</transition>
+	</template>
+	<template>
+		<name>Processo</name>
+		<parameter>pid id</parameter>
+		<declaration>clock x;
+rid r;</declaration>
+		<location id="id34" x="-3383" y="-3485">
+		</location>
+		<location id="id35" x="-3213" y="-3655">
+			<name x="-3223" y="-3689">Inside</name>
+			<label kind="invariant" x="-3204" y="-3646">x&lt;5</label>
+		</location>
+		<location id="id36" x="-3417" y="-3740">
+		</location>
+		<location id="id37" x="-3331" y="-3655">
+		</location>
+		<location id="id38" x="-3510" y="-3655">
+			<committed/>
+		</location>
+		<location id="id39" x="-3646" y="-3655">
+			<committed/>
+		</location>
+		<init ref="id39"/>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-3628" y="-3502">ok[id]?</label>
+			<nail x="-3646" y="-3485"/>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-3204" y="-3570">x&gt;2</label>
+			<label kind="synchronisation" x="-3204" y="-3553">release[id][r]!</label>
+			<nail x="-3213" y="-3485"/>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-3399" y="-3757">ok[id]?</label>
+			<nail x="-3213" y="-3740"/>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-3313" y="-3672">ok[id]?</label>
+			<label kind="assignment" x="-3313" y="-3655">r = res,
+x=0</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id36"/>
+			<label kind="synchronisation" x="-3519" y="-3765">requestS[id][r]!</label>
+			<nail x="-3510" y="-3740"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id37"/>
+			<label kind="synchronisation" x="-3476" y="-3578">requestG[id]!</label>
+			<nail x="-3485" y="-3578"/>
+			<nail x="-3366" y="-3578"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id37"/>
+			<label kind="synchronisation" x="-3492" y="-3672">requestC[id][r]!</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id38"/>
+			<label kind="select" x="-3620" y="-3689">risorsa:rid</label>
+			<label kind="assignment" x="-3620" y="-3672">r=risorsa</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+m=BinarySemaphore(MUTEX,1,PROC-1);
+c0=BinarySemaphore(0,0,1);
+c1=BinarySemaphore(1,0,1);
+c2=BinarySemaphore(2,0,1);
+c3=BinarySemaphore(3,0,1);
+c4=BinarySemaphore(4,0,1);
+// List one or more processes to be composed into a system.
+system Gestore,Processo,m,c0,c1,c2,c3,c4;
+    </system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt;deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int N_PROC = 2;
+typedef int[0,1] p_id;
+chan request[p_id];
+chan go[p_id];
+chan finish[p_id];
+broadcast chan check;
+int[0,2] accessi[p_id];
+bool occupato = false;
+
+
+void decAccessi(int id_processo){
+    int altro = 1 - id_processo;
+    if( accessi[altro] != 0 ){ accessi[altro]--; }
+}
+
+void initialize(){ 
+    int i = 0;
+    for( i;i&lt;N_PROC;i++){ accessi[i]=0 ;}
+}</declaration>
+	<template>
+		<name x="5" y="5">Processo</name>
+		<parameter>const p_id id</parameter>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id0" x="-1428" y="-731">
+			<name x="-1445" y="-765">Inside</name>
+			<label kind="invariant" x="-1411" y="-739">x&lt;=4</label>
+		</location>
+		<location id="id1" x="-1615" y="-731">
+			<name x="-1640" y="-765">Request</name>
+		</location>
+		<location id="id2" x="-1802" y="-731">
+			<name x="-1861" y="-748">Start</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-1666" y="-629">finish[id]!</label>
+			<nail x="-1428" y="-637"/>
+			<nail x="-1802" y="-637"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-1555" y="-748">go[id]?</label>
+			<label kind="assignment" x="-1555" y="-731">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-1784" y="-748">request[id]!</label>
+			<label kind="assignment" x="-1784" y="-731">x=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Gestore</name>
+		<parameter>const p_id id</parameter>
+		<location id="id3" x="-314" y="68">
+			<name x="-297" y="51">Inside</name>
+		</location>
+		<location id="id4" x="-748" y="68">
+			<label kind="invariant" x="-799" y="85">accessi[id]!=0</label>
+		</location>
+		<location id="id5" x="-536" y="67">
+			<committed/>
+		</location>
+		<location id="id6" x="-536" y="-272">
+			<label kind="invariant" x="-561" y="-306">occupato</label>
+		</location>
+		<location id="id7" x="-536" y="-111">
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-824" y="-306">occupato</label>
+			<label kind="assignment" x="-824" y="-289">occupato=true</label>
+			<nail x="-850" y="-272"/>
+			<nail x="-850" y="127"/>
+			<nail x="-535" y="127"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="-680" y="-17">initialize()</label>
+			<nail x="-722" y="0"/>
+			<nail x="-569" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-306" y="-93">finish[id]?</label>
+			<label kind="assignment" x="-306" y="-76">occupato=false,
+decAccessi(id)</label>
+			<nail x="-314" y="-110"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-518" y="33">accessi[id]&lt;2</label>
+			<label kind="synchronisation" x="-518" y="50">go[id]!</label>
+			<label kind="assignment" x="-518" y="67">accessi[id]++</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-697" y="51">accessi[id]==2</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-528" y="-60">!occupato</label>
+			<label kind="synchronisation" x="-528" y="-43">request[id]?</label>
+			<label kind="assignment" x="-527" y="-25">occupato=true</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-527" y="-221">occupato</label>
+			<label kind="synchronisation" x="-527" y="-204">request[id]?</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// List one or more processes to be composed into a system.
+system Processo,Gestore;
+    </system>
+	<queries>
+	</queries>
+</nta>

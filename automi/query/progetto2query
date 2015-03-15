@@ -1,0 +1,24 @@
+il tempo massimo di ricezione di un ack da parte del sender, supposto che l’ack non si perda
+E<> ( !ack_perso && ( Transition(2).Withdraw || Transition(5).Withdraw ) ) && sendPkt > 4
+
+il tempo massimo di ricezione di un ack da parte del sender, supposto che l’ack non si perda
+A[] ( !ack_perso && ( Transition(2).Withdraw || Transition(5).Withdraw ) ) imply sendPkt <= 4
+
+che trascorse 5 o 6 unità di tempo (timeout) senza aver ricevuto l’ack, il sender re-invia effettivamente il
+messaggio.
+E<> (Transition(1).Withdraw &&  ( sendPkt > 6 || sendPkt < 5 ) || Transition(4).Withdraw &&  ( sendPkt > 6 || sendPkt < 5 ))
+
+(Transition(13).Withdraw || Transition(15).Withdraw || Transition(13).Withdraw || Transition(15).Withdraw  ) --> ((Transition(1).Withdraw && sendPkt>=5 && sendPkt <= 6 ) || (Transition(4).Withdraw && sendPkt >=5 && sendPkt <= 6 ))
+
+che mentre il sender è impegnato nella sezione in cui gestisce un messaggio con header 0 (o 1) anche il
+receiver è ingaggiato nella sezione omonima 0 (o 1)
+A[] (M[3]==1 imply M[7]==1) && (M[1]==1 imply M[5]==1)
+
+che di momento in momento sul canale può essere presente o un messaggio normale o un ack
+E<> Transition(12).Firing && Transition(13).Firing
+
+che di momento in momento sul canale può essere presente o un messaggio normale o un ack
+E<> (M[8]==1 && M[9]==1) || (M[10]==1 && M[11]==1)
+
+Assenza di deadlock
+E<> deadlock
